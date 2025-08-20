@@ -8,3 +8,20 @@ Covers the two courses taken in the fall 2025 semester. Those courses being Line
 # Spatial Data Analysis (MATH 6384)
 
 > This course will cover various statistical methods for spatial data. This will include assessing cluster identification for point process and regional data, as well as quantifying spatial dependence and making predictions for regional and geostatistical spatial data.
+
+## Grading Scheme
+
+|Letter|Range|
+|---|---|
+|A|92+|
+|A-|[90, 92)|
+|B+|[88, 90)|
+|B|[82, 88)|
+|B-|[80, 82)|
+
+|Item|Grade Percentage|
+|---|---|
+|Homework| 20%|
+|Final Project/Presentation| 20%|
+|Exam 1| 30%|
+|Exam 2| 30%|
