@@ -30,4 +30,36 @@ Procedure (refer to slide 24/74)
 3. Calculate the test statistic for each of the $N_{\text{sim}}$ simulated data sets.
 4. Count the number of test statistics (the simulated AND observed) as large or larger than the observed.
 5. The estimated p-value is:
-	- $\hat{Pr}[T \geq T_{obs} \; | \; H_0 \; \text{is true}] = l/(N_{\text{sim}} + 1)$
+	- $\hat{Pr}[T \geq T_{obs} | H_0 \text{is true}] = l/(N_{\text{sim}} + 1)$
+
+We add 1 to the denominator so we include the observed test statistic. 
+
+**NOTE** Due to their reliance on simulated methods, these results aren't precisely replicable. But, in a practical sense, this doesn't really matter. 
+
+## Heterogeneous Poisson Process
+
+A poisson process is homogeneous when the intensity, $\lambda$, is constant across the study area. This is often too restrictive in the context of public health. Population usually isn't normally distributed across space. 
+
+The **constant risk hypothesis (CRH)** is a competing model of "no clustering". Under CRH, each person has the same risk of disease during some obervation period, REGARDLESS of location. 
+- clusters of cases in high populations are likely to violate CSR but may not violate the CRH.
+- We expect more cases in high population areas. 
+
+Check slide 27/74 for the definition of the **heterogeneous poisson process**.
+
+Translation
+- The number of events in disjoint regions still follow independent Poisson distribution.
+- Component 1 means the number of events expected in an area $A$ is rellated to the average intensity over the region.
+- Component 2 means the events are distributed more or less frequently related to the intensity. We expect more events in areas with higher intensity. 
+
+This process:
+	- is nonstationary since it is no longer translation invariant
+	- heterogeneity results in an anisotropic process if the intensity function is anisotropic. 
+	- This process CAN be isotropic in theory, but its considered unlikely. 
+
+The intensity function is a first order (mean or average) property describing the expected density of events in any locations of the region. 
+
+Events are independent of one another, but clusters appear in areas of high intensity. 
+
+Under a heterogeneous poisson process, clusters occur due to heterogeneities in the intensity function. 
+
+So really, what this gives us is a way to ask "is this number we're seeing expected due to clustering or is there something more interesting going on...". We get some baseline behavior to compare to! 
