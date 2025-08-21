@@ -13,15 +13,20 @@ Three large topics
 1665: Finding a minimum solution of a function. 
 	- First person to work on these topics: Newton. 
 		- Recall the Newton method of optimization! 
+		
 1788: Lagrangian Multipliers
 	- Lagrange
 	- Taking a lot of technically unconstrained problems and forcing constraints on them to be able to apply Newton's method. 
+
 1823: Solution of a Set of inequalities. 
 	- Fourier
+
 1826: Solution of a set of linear equations
 	- Gauss
+
 1896: Solution of a Set of linear equations as a combination of extreme points
 	- Minkowski
+
 1936: Transposition Theorem and Linear Inequalities
 	- Motzkin
 
@@ -29,19 +34,25 @@ Three large topics
 1939: Mathematical Methods of Organization and Production
 	- Kantorovich (Nobel Prize 1975)
 	- Now looking at world war 2 times and optimization of allocation of resources was very important to military operations.
+
 1941: Transportation Problem (THE linear programming problem basically)
 	- Hitchcock
+
 1947: Linear Programming Model
 	- Dantzig
+
 1951-ish: Simplex Method
 	- Dantzig
 
 ### LATER ADVANCEMENTS OF LINEAR PROGRAMMING ---
 1958: Integer Programming
 	- Gomory, Johnson, Balas
+
 1979: Ellipsoid Methods
+
 	- Khachiyan 
 1984: Interior Point Methods
+
 	- Guaranteed to run in polynomial time AND is efficient.
 	- Karmarkar, an indian mathematician
 	- Caused a LOT of drama. Took until the 90s to be widely accepted. Now one of the most competitive ways to solve linear programming problems.
@@ -56,7 +67,7 @@ In general, recall how calculus tackles optimization. 1st and 2nd derivatives, f
 
 Linear Systems of Equations. $Ax = b$ with $m$ many equations in $n$ many variables. 
 
-$A \in \mathbb{R}^{m \cross n}$: matrix with rows $a_i \in \mathbb{R}^n$ for $i=1, ... ,m$. 
+$A \in \mathbb{R}^{m \times n}$: matrix with rows $a_i \in \mathbb{R}^n$ for $i=1, ... ,m$. 
 
 So each row in the A matrix has n columns and m rows. So the top left element is $a_{1,1}$ and the bottom right is $a_{m,n}$. 
 
