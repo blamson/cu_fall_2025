@@ -60,4 +60,33 @@ As a general rule for canonical form, inequalities should all point in the same 
 	- Any free $x$ can be written as a difference of two non-negative numbers. There are infinitely many ways to describe... 2 as a difference of two non-negative numbers for example. $3-1$, $199-197$, etc etc
 		- So this is a one to many transformation which creates some problems.
 		- One can write $x = (y^+ + k) - (y^- + k) \forall k$
+		- In algorithms, only one of these pairs $x^+, x^-$ appears. One of them is guaranteed to be 0.
+
+To rewrite $Ax = b$ in canonical form, we can use $Ax \leq b, Ax \geq b$. 
+	- Remember though, we don't want to mix signs.
+	- $Ax \leq b$ <=> $(-A)x \geq -b$
+	- $Ax \leq b$ <=> $Ax + s = b, s \geq 0$
+		- $s$ are slack variables. $s \in \mathbb{R}^m$
+
+The above tools are everything you need to transform any LP into standard or canonical form. 
+
+# HOMEWORK 1 ASSIGNMENT
+
+Pick a small example from the AMPL book and write the corresponding LP in its original form, standard form and canonical form.
+
+Reading AMPL intro, 1.1 and 1.2.
+
+# The Geometry of Linear Programs
+
+$\max 3x_1 + 2x_2$
+
+$s.t. -x_1 + 3x_2 \leq 12$
+
+$x_1 + x_2 \leq 8$ 
+
+$x_1 - x_2 \leq 10$
+
+$x_1, x_2 \geq 0$ 
+
+Is this in canonical form? Mostly. The inequality at the bottom is different and its maximizing instead of minimizing, but those are simple to adjust. 
 
