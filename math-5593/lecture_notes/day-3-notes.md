@@ -30,9 +30,9 @@ The feasible region of an LP in canonical form is the intersection of finitely m
 
 **Polyhedral Sets** are finite intersection of halfspaces.
 
-	- polyhedron 
-	- polytope (bounded polyhedron). 
-	- Think like a hexagon in space providing us the region to optimize over. 
+- polyhedron 
+- polytope (bounded polyhedron). 
+- Think like a hexagon in space providing us the region to optimize over. 
 
 The feasible sets of linear programming are called **polyhedra**. 
 
