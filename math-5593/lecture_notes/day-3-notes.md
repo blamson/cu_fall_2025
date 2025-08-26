@@ -56,3 +56,29 @@ The feasible region of an LP in standard form, $Ax=b, x \geq 0$ is the intersect
 
 uhhhhhh, refer to the written notes for the actual visuals. 
 
+Scratchy latex work
+
+$x_1 + 2x_2 + 3x_3 = 6$
+
+$x_1 + x_2 + x_3 + x_4 = 4$
+
+$x_1, x_2, x_3, x_4 \geq 0$
+
+Then
+
+$x_1 = 6 - 2x_2 - 3x_3$
+
+(second equation, sub in x_1)
+
+$(6 - 2x_2 - 3x_3) + x_2 + x_3 + x_4 = 4$
+
+$6 - x_2 - 2x_3 + x_4 = 4$
+
+Here we collect $x_4$ and $x_1$ 
+
+$x_4 = -2 + x_2 + 2x_3 \geq 0$
+
+$x_1 = 6 - 2x_2 - 3x_3 \geq 0$
+
+$-2 + x_2 + 2x_3 \geq 0$
+$6 - 2x_2 - 3x_3 \geq 0$ 
