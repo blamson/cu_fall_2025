@@ -1,8 +1,12 @@
-# HOMEWORK:
+# HOMEWORK A:
 
 Install AMPL and/or ampl for python stuff. URL will be sent out. 
 
 Reading: Vanderbei chapter 1 (intro)
+
+# HOMEWORK B:
+
+Do the same exercise as today, but remove different variables. Say, $x_1$ and $x_2$. 
 
 # Notes
 
@@ -52,11 +56,13 @@ The set $C = \{ x \in \mathbb{R}^n: x \geq 0 \}$ is a special convex cone. Other
 
 The feasible region of an LP in standard form, $Ax=b, x \geq 0$ is the intersection of an affine subspace with a convex cone/the first orthant. 
 
-## Visualizations
+## Visualization Example
 
 uhhhhhh, refer to the written notes for the actual visuals. 
 
-Scratchy latex work
+Scratchy latex work.
+
+Setup: 
 
 $x_1 + 2x_2 + 3x_3 = 6$
 
@@ -64,11 +70,13 @@ $x_1 + x_2 + x_3 + x_4 = 4$
 
 $x_1, x_2, x_3, x_4 \geq 0$
 
+Problem: Remove $x_1$ and $x_4$ from this system.
+
 Then
 
 $x_1 = 6 - 2x_2 - 3x_3$
 
-(second equation, sub in x_1)
+(second equation, sub in $x_1$)
 
 $(6 - 2x_2 - 3x_3) + x_2 + x_3 + x_4 = 4$
 
@@ -81,4 +89,27 @@ $x_4 = -2 + x_2 + 2x_3 \geq 0$
 $x_1 = 6 - 2x_2 - 3x_3 \geq 0$
 
 $-2 + x_2 + 2x_3 \geq 0$
+
 $6 - 2x_2 - 3x_3 \geq 0$ 
+
+Then clean up the inequalities
+
+$x_2 + 2x_3 \geq 2$
+
+$2x_2 - 3x_3 \leq 6$ 
+
+$x_2, x_3 \geq 0$
+
+Then you can easily plot and visualize this setup.
+
+# Vertices
+
+$x$ is a vertex (or extreme point) of a polyhedron $P$ if $x=y=z$ whenever $x=ay+(1-a)z$ for $y,z \in P$ and $0 \leq a \leq 1$.
+
+$x$ is not the convex combination of any other points.
+
+**The Fundamental Theorem of Linear Programming**
+
+If there is an optimal solution to an LP, then there is an optimal vertex. 
+
+Note: There could be no optimal solution/unboundedness in direction of $c$ or even no feasible point.
