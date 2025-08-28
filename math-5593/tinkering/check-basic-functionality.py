@@ -26,9 +26,9 @@ def main():
     ampl.solve()
 
     # Print results
-    # print("Objective value:", ampl.getObjective("Total_Profit").value())
-    # for var in ampl.getVariables():
-    #     print(f"{var.name()} = {var.value()}")
+    print("Objective value:", ampl.getObjective("Total_Profit").value())
+    for name, values in ampl.getVariables():
+        print(f"Name: {name}, Values: {values}")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,112 @@
+\section*{Homework 1}
+
+\textbf{Problem:} Pick a small example from the AMPL book and write the corresponding LP in its original form, standard form and canonical form.
+
+\textbf{Solution:} For this problem I used the very first LP presented in the book. It is presented as such:
+
+\begin{align*}
+	\max \;\; & 25 X_B + 30X_c \\
+	\text{Subject To:}\;\;  & (1/200) X_B + (1/140) X_C \leq 40 \\
+	& 0 \leq X_B \leq 6000 \\
+	& 0 \leq X_C \leq 4000
+\end{align*}
+
+Converting this to canonical form is easier than standard form so we'll start there.
+
+\subsection*{Canonical Form}
+
+For this we want the following setup:
+
+\begin{align*}
+	\min \;\; & c^T x \\
+	\text{s.t.} \;\; & Ax \leq b
+\end{align*}
+
+First we'll handle the conversion from max to min.
+
+\[\max 25 X_B + 30 X_C = \min -25 X_B - 30X_C\]
+
+From here we need to account for something, we need all less than inequalities for our constraints however we have double inequalities. So we need to adjust those. Double inequalities aren't anything fancy really, they're just two sets of inequalities written in a more concise way.
+
+On top of that, we need to capture all of the coefficients in these inequalities. Some of these constraints only have a single variable, but in a way they still contain both. The one that isn't present can be represented with a simple 0 coefficient. Capturing all of that information, let's begin.
+
+First off,
+
+\[0 \leq X_B \leq 6000 \iff 0 \leq X_B, X_B \leq 6000\]
+\[0 \leq X_C \leq 4000 \iff 0 \leq X_C, X_C \leq 4000\]
+
+And, 
+
+\[0 \leq X_B \iff 0 \leq X_B + 0X_C\]
+\[0 \leq X_C \iff 0 \leq X_C + 0X_B\]
+
+Now let's rewrite all of our constraints. I'll also be flipping these inequalities to ensure all of them are in the same direction.
+
+\begin{align*}
+	\frac{1}{200} X_B + \frac{1}{140}X_C &\leq 40 \\
+	X_B + 0X_C &\leq 6000 \\
+	0X_B + X_C &\leq 4000 \\
+	-X_B + 0X_C &\leq 0 \\
+	0X_B - X_C &\leq 0
+\end{align*}
+
+Now we can rewrite all of what we have in vector/matrix notation and finish this up.
+
+\[
+	x = \m{b}{X_B \\ X_C}, c = \m{b}{-25 \\ -30}
+\]
+
+And now the constraints:
+
+\[
+	A = \m{b}{\frac{1}{200} & \frac{1}{140} \\ 1 & 0 \\ 0 & 1 \\ -1 & 0 \\ 0 & -1}, b = \m{b}{40 \\ 6000 \\ 4000 \\ 0 \\ 0}
+\]
+
+And so now in canonical form we have:
+
+
+\begin{align*}
+	\min \;\; & c^T x \\
+	\text{s.t.} \;\; & Ax \leq b
+\end{align*}
+
+\subsection*{Standard Form}
+
+This modification isn't too bad going from canonical form now. We need slack variables to handle the inequalities but nothing too crazy.
+
+Essentially, all we gotta do is create a slack variable $s_i$ for all of the inequalities. These will be set up such that $s_i \geq 0$. There are 5 inequaities, so 5 slack variables. 
+
+For a simple example, the second inequality becomes $X_B + 0X_C + s_2 = 6000$. 
+
+\begin{align*}
+	\frac{1}{200} X_B + \frac{1}{140}X_C + s_1 &= 40 \\
+	X_B + 0X_C + s_2 &= 6000 \\
+	0X_B + X_C + s_3 &= 4000 \\
+	-X_B + 0X_C + s_4 &= 0 \\
+	0X_B - X_C + s_4 &= 0
+\end{align*}
+
+As these add new variables we adjust the matrices as such.
+
+\[x = \m{b}{X_B & X_C & s_1 & s_2 & s_3 & s_4 & s_5}^T\]
+
+\[c = \m{b}{-25 & -30 & 0 & 0 & 0 & 0 & 0}^T\]
+
+The extra 0s on $c$ are due to how it changes the minimization function. $\min -25X_B - 30X_C + 0s_1 + \cdots + 0s_5$. This also allows the matrix max to still work out for working with $x$.
+
+\[
+	A = \m{b}{\frac{1}{200} & \frac{1}{140} & 1 & 0 & 0 & 0 & 0 \\ 
+	1 & 0 & 0 & 1 & 0 & 0 & 0 \\
+	0 & 1 & 0 & 0 & 1 & 0 & 0\\ 
+	-1 & 0 & 0 & 0 & 0 & 1 & 0\\ 
+	0 & -1 & 0 & 0 & 0 & 0 & 1}, 
+	b = \m{b}{40 \\ 6000 \\ 4000 \\ 0 \\ 0}
+\]
+
+So now we have everything. In standard form we have:
+
+\begin{align*}
+	\min \;\; & c^T x \\
+	\text{s.t.} \;\; & Ax = b
+\end{align*}
+
