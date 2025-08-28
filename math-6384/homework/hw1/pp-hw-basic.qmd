@@ -1,0 +1,105 @@
+---
+title: "Point Process Homework (Basics)"
+author: Brady Lamson
+date: 8/27/2025
+output: html
+self-contained: true
+---
+
+Instructions:  Answer the following questions and write your answers in a word processor.  Mathematical symbols should be written using the equation editor.  Appropriate graphics should be included.  The document may also be created in LaTeX, though this is NOT encouraged.
+
+# Problem 1
+
+What are the two components needed to define a spatial point process?
+
+1. Spatial domain of interest
+2. Observed event locations
+
+# Problem 2 NOT DONE YET
+
+What are the main components that define a homogeneous Poisson point process? 
+
+1. **Stationarity:**
+
+2. **Complete Spacial Randomness:** The events are uniformly distributed over the study area. 
+
+# Problem 3
+
+What is the main difference between a homogeneous and heterogeneous Poisson point process?
+
+The intensity rate $\lambda$ is constant across the entire study area in a homogeneous process. This is not the case in a heterogeneous poisson process. 
+
+# Problem 4
+
+Describe the differences between a regular, clustered, and homogeneous (CSR) Poisson point process?
+
+- **Regular:** Points are evenly spaced apart. They don't tend to be stacked on top of each other.
+- **Clustered:** Points are grouped together in specific areas with respect to the study area. Like a group of points in the bottom left and the center but not many points anywhere else. 
+- **CSR:** Points are uniformly distributed across the entire space. You may see little clusters or regularity here or there due to random variance but overall there isn't a noticable pattern.
+
+# Problem 5
+
+Draw pictures depicting a realization of a regular, clustered, and homogeneous (CSR) Poisson point process?
+
+![](../../images/point-process-examples.png)
+
+# Problem 6
+
+Run the following command in R to simulate a homogeneous Poisson point process with intensity `lambda = 50` over the domain $[0, 1]\times[0,1]$. 
+
+```{r, message=FALSE}
+library(spatstat)
+set.seed(105)
+h1 <- rpoispp(50)
+```
+
+Plot `h1` and comment on what you observe. How many points were generated? Do the event location seem to be compatible with CSR?
+
+```{r}
+print(h1)
+plot(h1)
+```
+
+It's 40 points which is interesting. Checking the docs: 
+
+> Note that lambda is the intensity, that is, the expected number of points per unit area. The total number of points in the simulated pattern will be random with expected value mu = lambda * a where a is the area of the window win.
+
+We only provide `lambda` here. So since we have an area of 1, the expected number of points is $\lambda$. However, since it's random, it will rarely be exactly that value. 
+
+As for CSR compatability, it seems fine at a glance. Some points are close together, others further apart. There are some areas without points but there isn't any obvious clustering going on. 
+
+# Problem 7
+
+Let's create our own function to simulate data that are compatible with complete spatial randomness over a $[0, 1]\times[0,1]$ study area.
+
+Create a function named `rcsr` that takes the parameter `lambda`.
+
+The function should do three things:
+
+1. Simulate `N`, the number of event locations, from a Poisson distribution with mean equal to `lambda`.
+2. For the selected value of `N`, draw `N` events uniformly over the domain $[0, 1]\times[0,1]$.
+    a. Draw the x-coordinate uniformly between [0, 1].
+    b. Draw the y-coordinate uniformly between [0, 1].
+3. Convert the `N` event locations to a `ppp` object.
+4. Return the `ppp` object.
+
+Run the function one time using $lambda = 50$ and plot the results.
+
+
+# Problem 8
+
+Let's perform a Monte Carlo test to assess if our function from the previous problem works correctly (with respect to one characteristic).
+
+1. Draw a single data set from the `rpoispp` function assuming `lambda = 50`. Use the `density` function to estimate the intensity function of the simulated data set. Compute the difference between the maximum and minimum estimated intensity values. Note: the `density` function method for `ppp` return in `im` object. The estimated intensity values for the `im` object are stored in the `v` element of `im` object. E.g., if the `x` is the output of the `density` function, then the estimated intensity values can be accessed via `x$v`.
+2. Draw a simulated data set from the `rcsr` function assuming `lambda = 50`. Use the `density` function to estimate the intensity function of the simulated data set, and compute the difference between the maximum and minimum estimated intensity value.
+3. Repeat the previous step 999 times.
+4. Compute the Monte Carlo p-value for the test statistic from 1 with the test statistics from 3.
+
+Does the `rcsr` function seem to produce realizations of a point process compatible with CSR with respect to this characteristic? Explain why?
+
+# Problem 9
+
+The **spatstat** package includes a data set named `japanesepines`.  The data give the locations of Japanese black pine saplings in a square sampling region in a natural forest. The observations were originally collected by Numata (1961).  
+
+a) Plot the data.  Comment on what you see and whether this looks compatible with CSR.
+a) Estimate and create a contour plot of the intensity function (use Scott’s rule for the bandwidth in each direction).  Do the observed data appear to be compatible with CSR?
