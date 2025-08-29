@@ -72,9 +72,9 @@ And so now in canonical form we have:
 
 \subsection*{Standard Form}
 
-This modification isn't too bad going from canonical form now. We need slack variables to handle the inequalities but nothing too crazy.
+This modification isn't too bad going from canonical form now. We need slack variables to handle the inequalities but nothing too crazy. 
 
-Essentially, all we gotta do is create a slack variable $s_i$ for all of the inequalities. These will be set up such that $s_i \geq 0$. There are 5 inequaities, so 5 slack variables. 
+Essentially, all we gotta do is create a slack variable $s_i$ for all of the inequalities. These will be set up such that $s_i \geq 0$. These end up going with the non-negativity constraints on $X_B, X_C$, so we only need 3 slack variables in total. One for each of the main constraints.  
 
 For a simple example, the second inequality becomes $X_B + 0X_C + s_2 = 6000$. 
 
@@ -82,31 +82,28 @@ For a simple example, the second inequality becomes $X_B + 0X_C + s_2 = 6000$.
 	\frac{1}{200} X_B + \frac{1}{140}X_C + s_1 &= 40 \\
 	X_B + 0X_C + s_2 &= 6000 \\
 	0X_B + X_C + s_3 &= 4000 \\
-	-X_B + 0X_C + s_4 &= 0 \\
-	0X_B - X_C + s_4 &= 0
+	X_B, X_C, s_1, s_2, s_3 &\geq 0
 \end{align*}
+
 
 As these add new variables we adjust the matrices as such.
 
-\[x = \m{b}{X_B & X_C & s_1 & s_2 & s_3 & s_4 & s_5}^T\]
+\[x = \m{b}{X_B & X_C & s_1 & s_2 & s_3}^T\]
 
-\[c = \m{b}{-25 & -30 & 0 & 0 & 0 & 0 & 0}^T\]
-
-The extra 0s on $c$ are due to how it changes the minimization function. $\min -25X_B - 30X_C + 0s_1 + \cdots + 0s_5$. This also allows the matrix max to still work out for working with $x$.
+\[c = \m{b}{-25 & -30 & 0 & 0 & 0}^T\]
 
 \[
-	A = \m{b}{\frac{1}{200} & \frac{1}{140} & 1 & 0 & 0 & 0 & 0 \\ 
-	1 & 0 & 0 & 1 & 0 & 0 & 0 \\
-	0 & 1 & 0 & 0 & 1 & 0 & 0\\ 
-	-1 & 0 & 0 & 0 & 0 & 1 & 0\\ 
-	0 & -1 & 0 & 0 & 0 & 0 & 1}, 
-	b = \m{b}{40 \\ 6000 \\ 4000 \\ 0 \\ 0}
+	A = \m{b}{\frac{1}{200} & \frac{1}{140} & 1 & 0 & 0 \\ 
+	1 & 0 & 0 & 1 & 0 \\
+	0 & 1 & 0 & 0 & 1}, 
+	b = \m{b}{40 \\ 6000 \\ 4000}
 \]
 
 So now we have everything. In standard form we have:
 
 \begin{align*}
 	\min \;\; & c^T x \\
-	\text{s.t.} \;\; & Ax = b
+	\text{s.t.} \;\; & Ax = b \\ 
+	& x \geq 0
 \end{align*}
 
