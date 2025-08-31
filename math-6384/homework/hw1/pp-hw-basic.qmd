@@ -19,15 +19,16 @@ What are the two components needed to define a spatial point process?
 
 What are the main components that define a homogeneous Poisson point process? 
 
-1. **Stationarity:**
+Shamelessly stealing from the slides and the book here.
 
-2. **Complete Spacial Randomness:** The events are uniformly distributed over the study area. 
+> 1. The number of events ocurring within a finite region $A$ is a RV following a Poisson distribution with mean $\lambda |A|$ for some positive constant $\lambda$ and $|A|$ denoting the area of $A$.
+2. Given the total number of events $N$ occurring within an area $A$, the locations of the $N$ events represent an independent random sample of $N$ locations, where each point is equally likely to be chosen as an event. 
 
 # Problem 3
 
 What is the main difference between a homogeneous and heterogeneous Poisson point process?
 
-The intensity rate $\lambda$ is constant across the entire study area in a homogeneous process. This is not the case in a heterogeneous poisson process. 
+The intensity rate $\lambda$ is constant across the entire study area in a homogeneous process. This is not the case in a heterogeneous poisson process. A heterogeneous poisson process could have some areas with far higher or lower intensities than others. 
 
 # Problem 4
 

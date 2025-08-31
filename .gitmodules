@@ -1,0 +1,3 @@
+[submodule "math-6384/SpatialDataAnalysis"]
+	path = math-6384/SpatialDataAnalysis
+	url = git@github.com:jfrench/SpatialDataAnalysis.git
