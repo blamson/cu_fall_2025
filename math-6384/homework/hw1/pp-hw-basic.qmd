@@ -1,10 +1,22 @@
 ---
 title: "Point Process Homework (Basics)"
 author: Brady Lamson
-date: 8/27/2025
+date: 8/31/2025
 output: html
 self-contained: true
 ---
+
+```{r, message=FALSE, results=FALSE, warning=FALSE, echo=FALSE}
+packages <- c("spatstat", "pbapply", "smacpod")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+```
+
 
 Instructions:  Answer the following questions and write your answers in a word processor.  Mathematical symbols should be written using the equation editor.  Appropriate graphics should be included.  The document may also be created in LaTeX, though this is NOT encouraged.
 
@@ -15,7 +27,7 @@ What are the two components needed to define a spatial point process?
 1. Spatial domain of interest
 2. Observed event locations
 
-# Problem 2 NOT DONE YET
+# Problem 2 
 
 What are the main components that define a homogeneous Poisson point process? 
 
@@ -86,6 +98,22 @@ The function should do three things:
 
 Run the function one time using $lambda = 50$ and plot the results.
 
+```{r}
+#| code-fold: true
+#| code-summary: The code
+#| 
+
+set.seed(100)
+rcsr <- function(lambda = 1) {
+    N <- rpois(1, lambda)
+    obs <- matrix(runif(2*N, min=0, max=1), ncol=2)
+    return(spatstat.geom::ppp(obs[,1], obs[,2]))
+}
+
+ppp_object <- rcsr(lambda=50)
+plot(ppp_object)
+```
+
 
 # Problem 8
 
@@ -98,9 +126,69 @@ Let's perform a Monte Carlo test to assess if our function from the previous pro
 
 Does the `rcsr` function seem to produce realizations of a point process compatible with CSR with respect to this characteristic? Explain why?
 
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+library(pbapply)
+
+set.seed(500)
+
+# 1. 
+ppp_object_1 <- spatstat.random::rpoispp(lambda=50)
+obs_intensity_1 <- density(ppp_object_1)$v
+t_obs <- max(obs_intensity_1) - min(obs_intensity_1)
+
+# 2 and 3.
+sims <- 1000
+t_sim <- numeric(sims)
+progressbar <- txtProgressBar(min=0, max=sims, style=3)
+
+t_sim <- pbapply::pbsapply(1:sims, function(i) {
+  sim <- rcsr(lambda = 50)
+  i_sim <- density(sim)$v
+  max(i_sim) - min(i_sim)
+})
+
+# Compute p-value
+p_value <- (sum(t_sim >= t_obs) + 1) / (sims + 1)
+cat("Monte Carlo P-Value:", p_value)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Make a plot for my own sake
+
+plot(density(t_sim), 
+     main = "Monte Carlo Test Statistic Distribution",
+     xlab = "Max - Min Intensity")
+abline(v = t_obs, col = "red", lty = 2, lwd = 2)
+```
+
+It seems there is not significant evidence to indicate that the results given by the `rcsr` function I wrote are incompatible with CSR. This test I believe assess the homogeneity of CSR. All areas should be equally likely to have events, so the intensity across a simulated dataset shouldn't have too crazy of a range. That's why the test statistics check the range of the intensity. Overly large ranges would indicate deviations from that homogeneity. What we see here is that the observed test statistic from a `rpoispp`, that we know works, falls right in the middle of our simulated density. So we're probably in the clear.
+
 # Problem 9
 
 The **spatstat** package includes a data set named `japanesepines`.  The data give the locations of Japanese black pine saplings in a square sampling region in a natural forest. The observations were originally collected by Numata (1961).  
 
 a) Plot the data.  Comment on what you see and whether this looks compatible with CSR.
-a) Estimate and create a contour plot of the intensity function (use Scott’s rule for the bandwidth in each direction).  Do the observed data appear to be compatible with CSR?
+b) Estimate and create a contour plot of the intensity function (use Scott’s rule for the bandwidth in each direction).  Do the observed data appear to be compatible with CSR?
+
+## A
+
+```{r}
+mydata <- spatstat.data::japanesepines
+plot(mydata)
+```
+
+It looks fair enough for CSR. I see too much grouping to indicate regularity, but not enough of it to point towards clustering.
+
+## B
+
+```{r}
+bandwidth <- spatstat.explore::bw.scott(mydata)
+intensity_est <- smacpod::spdensity(mydata, sigma = bandwidth)
+contour(intensity_est)
+```
+
+It's hard to say completely. However, I do notice two distinct valleys in this plot. Both are at 0.6. Everything above and below that point on the plot has a higher intensity, and this makes sense given the plot of the data itself. It's like there's this weird band with nothing in it. However, that is still possible with CSR data so it doesn't appear entirely *inconsistent* with CSR. Though it is definitely indicating a possible deviation.
