@@ -1,0 +1,164 @@
+---
+title: "Point Process Homework (Intensity and K Functions)"
+format: html
+self-contained: true
+author: Brady Lamson
+date: 09-03-2025
+---
+
+```{r, message=FALSE, results=FALSE, warning=FALSE, echo=FALSE}
+packages <- c("spatstat", "pbapply", "smacpod")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+```
+
+Instructions:  Answer the following questions and write your answers in a word processor.  Mathematical symbols should be written using the equation editor.  Appropriate graphics should be included.  The document may also be created in LaTeX, though this is NOT encouraged.
+
+# Problem 1 
+
+The **spatstat** package includes a data set named `japanesepines`.  The data give the locations of Japanese black pine saplings in a square sampling region in a natural forest. The observations were originally collected by Numata (1961).  
+
+
+
+```{r}
+pines <- spatstat.data::japanesepines
+```
+
+## A
+
+**Problem:**
+
+Construct a plot of $\hat{L}(h)-h$ versus $h$ for the data with 95% tolerance envelopes.  Use $N_{sim} = 499$ simulated data sets to construct the envelopes. You do not need to specify `r` (the vector of distances) in the function; simply use the default values.
+
+**Answer:**
+
+```{r, results='hide'}
+#| code-fold: true
+#| code-summary: The code
+
+lplot <- function(x, nsim = 499, level = 0.95,
+                  correction = "Ripley", ...) {
+  e_outer = envelope(x, fun = spatstat.explore::Lest,
+                     nsim = nsim, nrank = 1,
+                     savepatterns = TRUE)
+  e_tol = envelope(e_outer, fun = spatstat.explore::Lest,
+                   nsim = nsim,
+                   nrank = floor((1 - level) * (nsim + 1)/2))
+  plot(e_outer, fmla = . - r ~ r, legend = FALSE, main = "")
+  plot(e_tol, fmla = . - r ~ r, shadecol = "lightgrey", add = TRUE)
+}
+
+lplot(pines)
+```
+## B
+
+**Problem:**
+
+Using the previous plot, what do you conclude about the data's compability with CSR? Are there scales for which the event locations seem to exhibit more clustering than expected for a CSR process? Or more regularity than expected for a CSR process?
+
+**Answer:**
+
+The plot shows the majority of the curve is under 0. This would indicate *some* evidence of regularity in the data relative to CSR at all the scales shown. However, the line always falls comfortably within the $95\%$ envelopes. What this means is that there isn't strong enough evidence to conclude that this data isn't compatible with CSR. 
+
+## C
+
+**Problem:**
+
+Perform a hypothesis test to determine whether there is evidence of a departure from CSR by the data set at a significance level of 0.05 at some spatial scale between 0 and 0.25. Use $N_{sim} = 499$ simulated data sets to compute your Monte Carlo p-values. What is your conclusion?
+
+**Solution:**
+
+Okay so to break things down a bit. We want to get $T_{obs} = \max(|\hat{L}(h) - h|)$ for our observed data and compare it to simulated CSR data in the same study area. $h$ in this case is a range of distances we're curious about looking into. For this problem that is $[0, 0.25]$. 
+
+We generate an arbitrary amount of simulations, 499 in this problem, and then do the same computation for each of our simulated datasets. From there we look at how many times the data we observed and simulated was at least as extreme as the data we observed. 
+
+To simulate our data we need the study area from the pines dataset and the intensity of that dataset. Thankfully those are both things `spatstat` has functions for.
+
+To really remember *what* we're doing here, we're seeing if there's any evidence of departure from CSR anywhere along $h$. That's why we look at the maximum of $|\hat{L}(h) - h|$. We flatten things down to just examine the most extreme deviation to avoid the multiple comparisons problem. The absolute value is there to make sure we're capturing instances of regularity and clustering. 
+
+```{r, results='hide', warning=FALSE}
+#| code-fold: true
+#| code-summary: The code
+
+set.seed(500)
+h <- seq(from=0, to=0.25, length.out=200)
+
+# Break out \hat{L}(h) just for readability
+L_obs <- spatstat.explore::Lest(pines, r=h, correction = "Ripley")
+# Calc observed test statistic across h
+Tobs <- max( abs(L_obs$iso - h) )
+
+# Do the same setup for the simulated datasets.
+Tsim <- pbapply::pbsapply(1:499, FUN = function(i) {
+    sim_data <- spatstat.random::rpoispp(
+        lambda=spatstat.geom::intensity(pines), 
+        win = spatstat.geom::Window(pines)
+    )
+    sim_L <- spatstat.explore::Lest(sim_data, r=h, correction = "Ripley")
+    max( abs(sim_L$iso - h) )
+})
+
+# We make sure to include our observed data in the p-value. 
+p <- mean(c(Tsim, Tobs) >= Tobs)
+```
+
+```{r, echo=FALSE}
+cat("P-Value:", p)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Make a plot for my own sake
+
+plot(density(Tsim), 
+     xlim = range(c(Tsim, Tobs)),
+     main = "Monte Carlo Test Statistic Distribution",
+     xlab = "T")
+abline(v = Tobs, col = "red", lty = 2, lwd = 2)
+```
+
+Note: The red vertical line represents $T_{obs}$.
+
+**Conclusion:**
+
+This test resulted in a p-value of $0.744$. These results allow us to conclude that there is not significant evidence of a departure from CSR for the pines data for $0 \leq h \leq 0.25$. 
+
+# Problem 2
+
+Repeat the analysis from problem 1 for the `redwood` data in the **spatstat** package. The data represent the locations of 62 seedlings and saplings of California redwood trees in a square sampling region. They originate from Strauss (1975); the present data are a subset extracted by Ripley (1977) in a subregion that has been rescaled to a unit square.  The coordinates are rounded to the nearest 0.01 units, except for one point which has an x coordinate of 0.999, presumably to ensure that it is properly inside the window.
+
+(a) Plot the data.  Comment on what you see and whether this looks compatible with CSR.
+(a) Estimate and create a contour plot of the intensity function (use Scott’s rule for the bandwidth in each direction).  Comment on the plot in relation to potential departures from CSR.
+(a) Construct a plot of $\hat{L}(h)-h$ versus $h$ for the data with 95% tolerance envelopes.  Use $N_{sim} = 499$ simulated data sets to construct the envelopes. You do not need to specify `r` (the vector of distances) in the function; simply use the default values.
+(a) Using the previous plot, what do you conclude about the data's compability with CSR? Are there scales for which the event locations seem to exhibit more clustering than expected for a CSR process? Or more regularity than expected for a CSR process?
+(a) Perform a test to determine whether there evidence of a departure from CSR by the data set at a significance level of 0.05 at some spatial scale between 0 and 0.25. What is your conclusion? Use $N_{sim} = 499$ simulated data sets to compute your Monte Carlo p-values.
+
+# Problem 3
+
+Run the following code to generate some event locations in one-dimension.
+
+```
+set.seed(1)
+x <- runif(15)
+```
+Now define `h` in the following way:
+
+```
+h <- seq(-1, 2, len = 1000)
+```
+
+We will now visualize the process of density estimation for two different bandwidths. Note that we are technically not constructing densities because we are not scaling correctly.
+
+(a) Complete the following tasks.
+
+    i. For each event location, evaluate the Gaussian kernel function (this is simply `dnorm`) at each value of `h` using the event location as the `mean` argument and with a `sd` argument of 0.10. 
+    ii. For each value of `h`, sum the evaluated kernel values across all 15 event locations.
+    iii. Create a plot that displays the sum of the evaluated kernel functions on the y-axis and the value of `h` on the x-axis. On this plot, overlay the evaluated kernel function for each event location as a function of `h`.
+
+(b) Repeat the same process as (a) using a `sd`/bandwidth of 0.25.
+(c) What is the relationship between bandwidth and the smoothness of the estimated density?
