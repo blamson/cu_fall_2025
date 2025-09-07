@@ -132,33 +132,176 @@ This test resulted in a p-value of $0.744$. These results allow us to conclude t
 
 Repeat the analysis from problem 1 for the `redwood` data in the **spatstat** package. The data represent the locations of 62 seedlings and saplings of California redwood trees in a square sampling region. They originate from Strauss (1975); the present data are a subset extracted by Ripley (1977) in a subregion that has been rescaled to a unit square.  The coordinates are rounded to the nearest 0.01 units, except for one point which has an x coordinate of 0.999, presumably to ensure that it is properly inside the window.
 
-(a) Plot the data.  Comment on what you see and whether this looks compatible with CSR.
-(a) Estimate and create a contour plot of the intensity function (use Scott’s rule for the bandwidth in each direction).  Comment on the plot in relation to potential departures from CSR.
-(a) Construct a plot of $\hat{L}(h)-h$ versus $h$ for the data with 95% tolerance envelopes.  Use $N_{sim} = 499$ simulated data sets to construct the envelopes. You do not need to specify `r` (the vector of distances) in the function; simply use the default values.
-(a) Using the previous plot, what do you conclude about the data's compability with CSR? Are there scales for which the event locations seem to exhibit more clustering than expected for a CSR process? Or more regularity than expected for a CSR process?
-(a) Perform a test to determine whether there evidence of a departure from CSR by the data set at a significance level of 0.05 at some spatial scale between 0 and 0.25. What is your conclusion? Use $N_{sim} = 499$ simulated data sets to compute your Monte Carlo p-values.
+```{r}
+redwood <- spatstat.data::redwood
+```
+
+
+## A 
+
+**Problem:**
+
+Plot the data.  Comment on what you see and whether this looks compatible with CSR.
+
+**Solution:**
+
+```{r}
+plot(redwood)
+```
+
+I wouldn't say this data looks compatible with CSR. There's like this clustered S shape in the data. A lot of the gaps don't look like they're there due to random chance. This plot looks very clustered. 
+
+## B
+
+**Problem:**
+
+Estimate and create a contour plot of the intensity function (use Scott’s rule for the bandwidth in each direction).  Comment on the plot in relation to potential departures from CSR.
+
+**Solution:**
+
+```{r}
+bandwidth <- spatstat.explore::bw.scott(redwood)
+intensity_est <- smacpod::spdensity(redwood, sigma = bandwidth)
+contour(intensity_est)
+```
+
+We see a number of distinct local maxes here. There's 2 in the bottom left and one in the top right. We also see some huge dips like in the top left and middle right. Also of note is right in the middle is a small dip between the local maxes that isn't actually that insane of a drop. It follows that S shape I described earlier. I feel like all of that is evidence of some sort of clustering and a departure from CSR. 
+
+## C 
+
+**Problem:**
+
+Construct a plot of $\hat{L}(h)-h$ versus $h$ for the data with 95% tolerance envelopes.  Use $N_{sim} = 499$ simulated data sets to construct the envelopes. You do not need to specify `r` (the vector of distances) in the function; simply use the default values.
+
+**Solution:**
+
+```{r, results='hide', warning=FALSE}
+lplot(redwood)
+```
+
+
+## D 
+
+**Problem:**
+
+Using the previous plot, what do you conclude about the data's compability with CSR? Are there scales for which the event locations seem to exhibit more clustering than expected for a CSR process? Or more regularity than expected for a CSR process?
+
+**Solution:**
+
+There seems to be a range of spatial scales where clustering may be happening. Around $0.05$ to $0.15$ is well above the confidence envelopes for the simulated data. I would say that for those scales we're seeing a good bit of evidence of clustering. 
+
+## E
+
+**Problem:**
+
+Perform a test to determine whether there evidence of a departure from CSR by the data set at a significance level of 0.05 at some spatial scale between 0 and 0.25. What is your conclusion? Use $N_{sim} = 499$ simulated data sets to compute your Monte Carlo p-values.
+
+**Solution:**
+
+```{r, results='hide', warning=FALSE}
+#| code-fold: true
+#| code-summary: Exact same code as last time.
+
+set.seed(500)
+h <- seq(from=0, to=0.25, length.out=200)
+
+# Break out \hat{L}(h) just for readability
+L_obs <- spatstat.explore::Lest(redwood, r=h, correction = "Ripley")
+# Calc observed test statistic across h
+Tobs <- max( abs(L_obs$iso - h) )
+
+# Do the same setup for the simulated datasets.
+Tsim <- pbapply::pbsapply(1:499, FUN = function(i) {
+    sim_data <- spatstat.random::rpoispp(
+        lambda=spatstat.geom::intensity(redwood), 
+        win = spatstat.geom::Window(redwood)
+    )
+    sim_L <- spatstat.explore::Lest(sim_data, r=h, correction = "Ripley")
+    max( abs(sim_L$iso - h) )
+})
+
+# We make sure to include our observed data in the p-value. 
+p <- mean(c(Tsim, Tobs) >= Tobs)
+```
+
+```{r, echo=FALSE}
+cat("P-Value:", p)
+```
+
+Our results show that $p=0.002<\alpha$. This allows us to conclude that there is significant evidence of a departure from CSR at some spatial scale between $0 \leq h \leq 0.25$. 
 
 # Problem 3
 
 Run the following code to generate some event locations in one-dimension.
 
-```
+```{r}
 set.seed(1)
-x <- runif(15)
+x <- runif(15) # runif defaults to min=0, max=1
 ```
+
 Now define `h` in the following way:
 
-```
+```{r}
 h <- seq(-1, 2, len = 1000)
 ```
 
 We will now visualize the process of density estimation for two different bandwidths. Note that we are technically not constructing densities because we are not scaling correctly.
 
-(a) Complete the following tasks.
+## A 
 
-    i. For each event location, evaluate the Gaussian kernel function (this is simply `dnorm`) at each value of `h` using the event location as the `mean` argument and with a `sd` argument of 0.10. 
+**Problem:** Complete the following tasks.
+
+Tasks:
+
+    iii. For each event location, evaluate the Gaussian kernel function (this is simply `dnorm`) at each value of `h` using the event location as the `mean` argument and with a `sd` argument of 0.10. 
+    
     ii. For each value of `h`, sum the evaluated kernel values across all 15 event locations.
+    
     iii. Create a plot that displays the sum of the evaluated kernel functions on the y-axis and the value of `h` on the x-axis. On this plot, overlay the evaluated kernel function for each event location as a function of `h`.
 
-(b) Repeat the same process as (a) using a `sd`/bandwidth of 0.25.
-(c) What is the relationship between bandwidth and the smoothness of the estimated density?
+**Solution:**
+
+```{r}
+#| code-fold: true
+#| code-summary: Code
+
+# (i) Evaluate Gaussian kernel (sd = 0.1) at each event location
+# Object is 1000 rows by 15 columns
+kernels <- sapply(x, function(xi) dnorm(h, mean = xi, sd = 0.10)) 
+
+# (ii) Sum across rows
+kernel_sums <- rowSums(kernels)
+
+plot(x=h, y=kernel_sums, type="l", lwd=2)
+# Use matlines here for easily showing all of the lines on the plot at once without calling lines() a ton. 
+matlines(h, kernels, lty = 1, col = "darkgrey")
+```
+
+## B 
+
+**Problem:**
+
+Repeat the same process as (a) using a `sd`/bandwidth of 0.25.
+
+**Solution:**
+
+```{r}
+#| code-fold: true
+#| code-summary: Same code
+#| 
+kernels <- sapply(x, function(xi) dnorm(h, mean = xi, sd = 0.25)) 
+kernel_sums <- rowSums(kernels)
+
+plot(x=h, y=kernel_sums, type="l", lwd=2)
+matlines(h, kernels, lty = 1, col = "darkgrey")
+```
+
+## C
+
+**Problem:**
+
+What is the relationship between bandwidth and the smoothness of the estimated density?
+
+**Solution:**
+
+The larger bandwidth completely smooths out the line into a nice bell curve. The small bandwidth shows more of the local humps. We can even see this in the location specific curves. The smaller bandwidth means their overlap is smaller. The larger has the curves overlapping so much more. So a larger bandwidth smooths out the estimated density as a result.
