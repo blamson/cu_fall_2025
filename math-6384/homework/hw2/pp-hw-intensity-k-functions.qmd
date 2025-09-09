@@ -86,12 +86,11 @@ To really remember *what* we're doing here, we're seeing if there's any evidence
 #| code-summary: The code
 
 set.seed(500)
-h <- seq(from=0, to=0.25, length.out=200)
 
 # Break out \hat{L}(h) just for readability
-L_obs <- spatstat.explore::Lest(pines, r=h, correction = "Ripley")
+L_obs <- spatstat.explore::Lest(pines, correction = "Ripley")
 # Calc observed test statistic across h
-Tobs <- max( abs(L_obs$iso - h) )
+Tobs <- max( abs(L_obs$iso - L_obs$r) )
 
 # Do the same setup for the simulated datasets.
 Tsim <- pbapply::pbsapply(1:499, FUN = function(i) {
@@ -99,8 +98,8 @@ Tsim <- pbapply::pbsapply(1:499, FUN = function(i) {
         lambda=spatstat.geom::intensity(pines), 
         win = spatstat.geom::Window(pines)
     )
-    sim_L <- spatstat.explore::Lest(sim_data, r=h, correction = "Ripley")
-    max( abs(sim_L$iso - h) )
+    sim_L <- spatstat.explore::Lest(sim_data, correction = "Ripley")
+    max( abs(sim_L$iso - sim_L$r) )
 })
 
 # We make sure to include our observed data in the p-value. 
@@ -126,7 +125,7 @@ Note: The red vertical line represents $T_{obs}$.
 
 **Conclusion:**
 
-This test resulted in a p-value of $0.744$. These results allow us to conclude that there is not significant evidence of a departure from CSR for the pines data for $0 \leq h \leq 0.25$. 
+This test resulted in a p-value of $0.696$. These results allow us to conclude that there is not significant evidence of a departure from CSR for the pines data for $0 \leq h \leq 0.25$. 
 
 # Problem 2
 
@@ -203,12 +202,11 @@ Perform a test to determine whether there evidence of a departure from CSR by th
 #| code-summary: Exact same code as last time.
 
 set.seed(500)
-h <- seq(from=0, to=0.25, length.out=200)
 
 # Break out \hat{L}(h) just for readability
-L_obs <- spatstat.explore::Lest(redwood, r=h, correction = "Ripley")
+L_obs <- spatstat.explore::Lest(redwood, correction = "Ripley")
 # Calc observed test statistic across h
-Tobs <- max( abs(L_obs$iso - h) )
+Tobs <- max( abs(L_obs$iso - L_obs$r) )
 
 # Do the same setup for the simulated datasets.
 Tsim <- pbapply::pbsapply(1:499, FUN = function(i) {
@@ -216,8 +214,8 @@ Tsim <- pbapply::pbsapply(1:499, FUN = function(i) {
         lambda=spatstat.geom::intensity(redwood), 
         win = spatstat.geom::Window(redwood)
     )
-    sim_L <- spatstat.explore::Lest(sim_data, r=h, correction = "Ripley")
-    max( abs(sim_L$iso - h) )
+    sim_L <- spatstat.explore::Lest(sim_data, correction = "Ripley")
+    max( abs(sim_L$iso - sim_L$r) )
 })
 
 # We make sure to include our observed data in the p-value. 
