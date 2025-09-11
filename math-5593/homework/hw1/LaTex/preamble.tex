@@ -43,3 +43,30 @@
     \setlength\abovedisplayshortskip{-2pt}%
     \setlength\belowdisplayshortskip{2pt}%
 }
+
+% Below is for including code in homework writeups
+% To create a code environment use \begin{lstlisting}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% For AMPL code stuff
+\lstdefinelanguage{AMPL}{
+  keywords={param, var, minimize, maximize, subject, set, end},
+  sensitive=true,
+  morecomment=[l]{\#},
+  morestring=[b]"
+}
+
+\lstset{
+  language=AMPL,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{green!50!black},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  frame=single,
+  breaklines=true,
+  tabsize=2
+}

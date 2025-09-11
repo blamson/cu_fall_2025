@@ -1,0 +1,88 @@
+\section*{Homework 4: AMPL Book Exercise 1-2}
+
+\textbf{Problem:} The steel model for this chapter can be further modified to reflect various changes in production requirements. For each part below, explain the modifications to Figures 1-6a and 1-6b that would be required to achieve the desired changes. Make each change in isolation, not carrying modifications from part to part. 
+
+\subsection*{Reference Information}
+
+Before we begin, let's just keep the default info and solution up here as an easy reference. 
+
+\textbf{Files} Figures 1-6a and 1-6b both use the \textbf{steel4} .dat and .mod files. So I'll be using them as a base and modifying them. 
+
+The given steel linear program has the following solution:
+
+\begin{align*}
+	\text{Total Profit} &\approx 190071.43 \\
+	\text{Bands} &\approx 3357.14 \\
+	\text{Coils} &= 500 \\
+	\text{Plates} &\approx 3142.86 \\
+\end{align*}
+
+As for time used, we use 35 hours on the reheat stage and 40 hours on the roll stage.
+
+\subsection*{A}
+
+\textbf{Problem:} How would you change the constraints so that total hours used by all products must equal the total hours available for each stage? Solve the linear program and verify that you get the same results. Why is there no difference in solution?
+
+\noindent\textbf{Solution:} All we need to do here is modify one line. Line 18 specifically. We change the $\leq$ to a strict $=$. 
+
+\begin{lstlisting}
+subject to Time: sum {p in PROD} (1/rate[p,s]) * Make[p] = avail[s];
+\end{lstlisting}
+
+The solution it gives is the exact same. This is because our goal is to produce as much as we can to maximize profit. So the original solution is already using up all of the available hours. We can check this programmatically and check the hours both solutions used. 
+
+\subsection*{B}
+
+\textbf{Problem:} How would you add to the model to restrict the total weight of all products to be less than a new parameter, max\_weight? Solve the linear program for a weight limit of 6500 tons, and explain how this extract restriction changes the results.
+
+\noindent\textbf{Solution:} We need to make a few modifications here. We'll need to edit both the .dat and .mod files. In .dat we simply add a new parameter alongside our availability parameter.
+
+\begin{lstlisting}
+param avail := reheat 35 roll 40;
+param max_weight := 6500; 
+\end{lstlisting}
+
+In the .mod file we adjust two things. First we read in that max weight parameter and then include in as a new constraint at the bottom.
+
+\begin{lstlisting}
+param max_weight >= 0		# Total tons of weight allowed across all products
+
+subject to Total_Weight:
+	sum{p in PROD} Make[p] <= max_weight;
+\end{lstlisting}
+
+\begin{align*}
+	\text{Total Profit} &\approx 183791.67 \\
+	\text{Bands} &\approx 1541.67 \\
+	\text{Coils} &= 1458.33 \\
+	\text{Plates} &\approx 3500 \\
+\end{align*}
+
+We also change up our usage of time a bit. Spending 32.5 hours on reheat and 40 on rolling. 
+
+This restriction forces us to think about profit per ton beyond just rate. We now have to consider weight limits and how that effects profits. The amount of coils we make here skyrockets because because they are the lightest of the products we can produce.
+
+\subsection*{C}
+
+\textbf{Problem:} How would you change the objective function to maximize total tons? Does this make a difference to the solution?
+
+\noindent\textbf{Solution:} This is the simplest to change. Just remove the profit from the objective function as it already factors in weight. 
+
+\begin{lstlisting}
+	maximize Total_Weight: sum {p in PROD} Make[p];
+\end{lstlisting}
+
+Funnily enough this ends up with the exact same results as the original model!
+
+\begin{align*}
+	\text{Total Weight} &= 7000 \\
+	\text{Bands} &\approx 3357.14 \\
+	\text{Coils} &= 500 \\
+	\text{Plates} &\approx 3142.86 \\
+\end{align*}
+
+We just don't get our profit shown in the objective function is all. 
+
+\subsection*{D}
+
+\textbf{Problem:} 
