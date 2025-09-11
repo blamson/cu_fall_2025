@@ -8,8 +8,8 @@ def main():
 
     file_name = "steel4"
     logger.info("Reading data")
-    ampl.read(f"../models/{file_name}c.mod")
-    ampl.read_data(f"../data/{file_name}.dat")
+    ampl.read(f"../models/{file_name}.mod")
+    ampl.read_data(f"../data/{file_name}e.dat")
 
     logger.info("Running solution")
     ampl.solve()
