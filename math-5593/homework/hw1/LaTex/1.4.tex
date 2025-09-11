@@ -29,7 +29,7 @@ As for time used, we use 35 hours on the reheat stage and 40 hours on the roll s
 subject to Time: sum {p in PROD} (1/rate[p,s]) * Make[p] = avail[s];
 \end{lstlisting}
 
-The solution it gives is the exact same. This is because our goal is to produce as much as we can to maximize profit. So the original solution is already using up all of the available hours. We can check this programmatically and check the hours both solutions used. 
+The solution it gives is the exact same. This is because our goal is to produce as much as we can to maximize profit. So the original solution is already using up all of the available hours. We can check this programmatically and check the hours both solutions used. I don't have that included in here, but I personally verified that this was the case. 
 
 \subsection*{B}
 
@@ -81,7 +81,7 @@ Funnily enough this ends up with the exact same results as the original model!
 	\text{Plates} &\approx 3142.86 \\
 \end{align*}
 
-We just don't get our profit shown in the objective function is all. 
+We just don't get our profit shown in the objective function is all as it shows the total weight. The profit is the exact same as well, it just isn't shown here.
 
 \subsection*{D}
 
