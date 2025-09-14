@@ -4,8 +4,8 @@ set PROD := bands coils plate;
 set STAGE := reheat roll finishing;
 
 param rate:  reheat  roll  finishing:=
-  bands        200    200  1e9
-  coils        200    140  1e9
+  bands        200    200  infinity
+  coils        200    140  infinity
   plate        200    160  150;
 
 param:    profit  commit  market :=

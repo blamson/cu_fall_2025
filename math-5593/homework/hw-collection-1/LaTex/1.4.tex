@@ -6,9 +6,58 @@
 
 Before we begin, let's just keep the default info and solution up here as an easy reference. 
 
-\textbf{Files} Figures 1-6a and 1-6b both use the \textbf{steel4} .dat and .mod files. So I'll be using them as a base and modifying them. 
+\noindent\textbf{Files:} Figures 1-6a and 1-6b both use the \textbf{steel4} .dat and .mod files. So I'll be using them as a base and modifying them. 
 
-The given steel linear program has the following solution:
+\noindent\textbf{steel4.mod}
+
+\begin{lstlisting}
+set PROD;   # products
+set STAGE;  # stages
+
+param rate {PROD,STAGE} > 0; # tons per hour in each stage
+param avail {STAGE} >= 0;    # hours available/week in each stage
+param profit {PROD};         # profit per ton
+
+param commit {PROD} >= 0;    # lower limit on tons sold in week
+param market {PROD} >= 0;    # upper limit on tons sold in week
+
+var Make {p in PROD} >= commit[p], <= market[p]; # tons produced
+
+maximize Total_Profit: sum {p in PROD} profit[p] * Make[p];
+
+               # Objective: total profits from all products
+
+subject to Time {s in STAGE}:
+   sum {p in PROD} (1/rate[p,s]) * Make[p] <= avail[s];
+
+               # In each stage: total of hours used by all
+               # products may not exceed hours available
+
+\end{lstlisting}
+
+\noindent\textbf{steel4.dat}
+
+\begin{lstlisting}
+data;
+
+set PROD := bands coils plate;
+set STAGE := reheat roll;
+
+param rate:  reheat  roll :=
+  bands        200    200
+  coils        200    140
+  plate        200    160 ;
+
+param:    profit  commit  market :=
+  bands     25     1000    6000
+  coils     30      500    4000
+  plate     29      750    3500 ;
+
+param avail :=  reheat 35   roll   40 ;
+\end{lstlisting}
+
+
+This provides the following solution:
 
 \begin{align*}
 	\text{Total Profit} &\approx 190071.43 \\
@@ -19,7 +68,7 @@ The given steel linear program has the following solution:
 
 As for time used, we use 35 hours on the reheat stage and 40 hours on the roll stage.
 
-\subsection*{A}
+\subsection*{A \checkmark Checked on September 11.}
 
 \textbf{Problem:} How would you change the constraints so that total hours used by all products must equal the total hours available for each stage? Solve the linear program and verify that you get the same results. Why is there no difference in solution?
 
@@ -35,14 +84,16 @@ The solution it gives is the exact same. This is because our goal is to produce 
 
 \textbf{Problem:} How would you add to the model to restrict the total weight of all products to be less than a new parameter, max\_weight? Solve the linear program for a weight limit of 6500 tons, and explain how this extract restriction changes the results.
 
-\noindent\textbf{Solution:} We need to make a few modifications here. We'll need to edit both the .dat and .mod files. In .dat we simply add a new parameter alongside our availability parameter.
+\noindent\textbf{Solution:} We need to make a few modifications here. We'll need to edit both the .dat and .mod files. In the data file we simply add a new \texttt{max\_weight} parameter. Here it is next to \texttt{avail} for reference. Note that this parameter does not set specific weight limits for each product. 
 
 \begin{lstlisting}
 param avail := reheat 35 roll 40;
 param max_weight := 6500; 
 \end{lstlisting}
 
-In the .mod file we adjust two things. First we read in that max weight parameter and then include in as a new constraint at the bottom.
+In the model file we read in this parameter and set a constraint for it. Firstly, we want the max weight to be a non-negative value. This is just a data quality check. 
+
+After that, we create a new constraint using this parameter. This constraint ensures that the total weight across all products does not exceed \texttt{max\_weight}. 
 
 \begin{lstlisting}
 param max_weight >= 0		# Total tons of weight allowed across all products
@@ -51,18 +102,22 @@ subject to Total_Weight:
 	sum{p in PROD} Make[p] <= max_weight;
 \end{lstlisting}
 
+Below is the solution generated after these modifications. 
+
 \begin{align*}
 	\text{Total Profit} &\approx 183791.67 \\
 	\text{Bands} &\approx 1541.67 \\
-	\text{Coils} &= 1458.33 \\
-	\text{Plates} &\approx 3500 \\
+	\text{Coils} &\approx 1458.33 \\
+	\text{Plates} &= 3500 \\
 \end{align*}
 
-We also change up our usage of time a bit. Spending 32.5 hours on reheat and 40 on rolling. 
+What we see is a substantial shift from the original solution. Production of bands is nearly halved and production of coils is nearly tripled. The production of plates reaches its maximum. Total profit compared to the original solution drops by around $\$6000$.
 
-This restriction forces us to think about profit per ton beyond just rate. We now have to consider weight limits and how that effects profits. The amount of coils we make here skyrockets because because they are the lightest of the products we can produce.
+This is caused by the new constraint on total weight. In the original problem, production was only limited by the products rates in each stage and their availability. Though there were hard minimum and maximums on production for each product, this was never directly involved in the objective function. As such, profit per ton played no real part in the optimization process and \texttt{rate} was the main parameter dictating which products were prioritized.
 
-\subsection*{C}
+The new total weight constraint forces the model to consider the profit per ton of each product. Coils are the slowest to produce, but they have the highest profit per ton value (30) followed by plates (29). Bands, meanwhile, have the lowest profit per ton (25) and are produced far less as a result. This solution maxes out plates because they are just barely the second most profitable per ton and are the second fastest to produce. Then bands and coils fill in the remaining allocation. This is also why the total profit is lower now as production can't just focus production on the heaviest products. 
+
+\subsection*{C \checkmark Checked on September 11.}
 
 \textbf{Problem:} How would you change the objective function to maximize total tons? Does this make a difference to the solution?
 
@@ -95,7 +150,7 @@ where $s_j$ is the minimum share associated with project $j$. How would you chan
 
 Verify that if you change the minimum shares to 0.5 for bands and plate, and 0.1 for coils, the linear program gives an optimal solution that produces nothing, at zero profit. Explain why this makes sense.
 
-\noindent\textbf{Solution:} This one is a bit more involved but honestly not too bad. We'll first change our data file. We want to remove the \texttt{commit} parameter and replace it with our new \texttt{share} parameter. 
+\noindent\textbf{Solution:} To start, we update the data file to remove the \texttt{commit} parameter and replace it with the new \texttt{share} parameter. 
 
 \begin{lstlisting}
 	param:    profit  market  share :=
@@ -104,7 +159,7 @@ Verify that if you change the minimum shares to 0.5 for bands and plate, and 0.1
 	  plate     29    3500   0.4 ;
 \end{lstlisting}
 
-Moving onto our model file, we need to adjust a couple things. First, we replace the lower bound on \texttt{Make} that was previously set by \texttt{commit} with 0. Then we add a new constraint to the bottom of the file to ensure the shares are working correctly.
+Next, in the model file, we remove the lower bound on \texttt{Make} set by \texttt{commit} and add a new constraint enforcing the minimum \texttt{share}.
 
 \begin{lstlisting}
 	param share {PROD} >= 0;     # minimum proportion of total tons for each product
@@ -124,7 +179,11 @@ With this our new solution is as follows:
 	\text{Plates} &= 2800 \\
 \end{align*}
 
-Some quick sanity checks let us know all of these meet the minimum proportions we set. Also, if we change the shares in the data file to be 0.5, 0.1, 0.5 we do end up producing nothing as expected. This is because those shares are proportions and they total to 1.1 which is impossible. Those requirements can't be met so we produce nothing.
+Firstly, this solution meets all minimum share requirements. The number of coils produced compared to the original solution increases by $200$ as a result of this change. 
+
+Modifying the data file to shares of 0.5, 0.1, 0.5 results in no feasible solutions existing. As such, the optimizer produces nothing. This is because the shares are a proportion of the total production and the sum of these cannot exceed $1$ which this group of shares does. 
+
+This shows some important behavior in AMPL. If the data and constraints provided result in no feasible solution then there will be no production. There has to be a feasible region for the solver to work with. 
 
 \subsection*{E}
 
@@ -136,11 +195,18 @@ Some quick sanity checks let us know all of these meet the minimum proportions w
 	set STAGE := reheat roll finishing;
 
 	param rate:  reheat  roll  finishing:=
-	  bands        200    200  1e9
-	  coils        200    140  1e9
+	  bands        200    200  infinity
+	  coils        200    140  infinity
 	  plate        200    160  150;
 
 	param avail := reheat 35 roll 40 finishing 20;
 \end{lstlisting}
 
-This automatically gets worked in with 0 modifications to the model file!
+This automatically gets worked in with 0 modifications to the model file! Below shows the run in Python. Note I have some additional logs and printed values for my own sake.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../images/hw4-part-e-run.png}
+    \caption{AMPL code running with finishing stage included.}
+    \label{fig:your_label}
+\end{figure}

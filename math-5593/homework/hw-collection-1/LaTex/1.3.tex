@@ -1,0 +1,156 @@
+\section*{Homework 3}
+
+\textbf{Problem} Decide for our running example for which combinations of basic variables we get a basic feasible or infeasible solution via a computation. (From lecture 4).
+
+I'll be using the same system of equations as in homework 2.
+
+\[
+	A = \m{v}{1&2&3&0 \\ 1&1&1&1}, \;\; b = \m{p}{6\\4}
+\]
+
+To get our basic solution we need to take $A$ and choose 2 subsets of columns from it, $B$ and $N$. The columns we choose for $B$ (the basis) do not need to be consecutive. For each choice, the other two columns will go into $N$.  
+
+We then compute the basic solution as
+
+\[
+	x_B = B^{-1}b, \qquad x_N = 0.
+\]
+
+A solution is feasible if all components of $x$ are nonnegative. Below I will work through all six possible choices of bases.
+
+---
+
+\subsection*{Basis columns 1 and 2}
+
+\[
+	B = \m{v}{1&2\\1&1}
+\]
+
+\begin{align*}
+	x_B &= B^{-1}b \\
+	&= \m{v}{-1&2\\1&-1} \m{p}{6\\4} \\
+	&= \m{p}{2\\2}
+\end{align*}
+
+Thus the basic solution is
+\[
+	x = (2, 2, 0, 0).
+\]
+All entries are nonnegative, so this solution is feasible.
+
+---
+
+\subsection*{Basis columns 1 and 3}
+
+\[
+	B = \m{v}{1&3\\1&1}
+\]
+
+\begin{align*}
+	x_B &= B^{-1}b \\
+	&= \m{v}{-1&3\\1&-1} \m{p}{6\\4} \\
+	&= \m{p}{3\\1}
+\end{align*}
+
+Thus the basic solution is
+\[
+	x = (3, 0, 1, 0).
+\]
+All entries are nonnegative, so this solution is feasible.
+
+---
+
+\subsection*{Basis columns 1 and 4}
+
+\[
+	B = \m{v}{1&0\\1&1}
+\]
+
+\begin{align*}
+	x_B &= B^{-1}b \\
+	&= \m{v}{1&0\\-1&1} \m{p}{6\\4} \\
+	&= \m{p}{6\\-2}
+\end{align*}
+
+Thus the basic solution is
+\[
+	x = (6, 0, 0, -2).
+\]
+Since $x_4 = -2 < 0$, this solution is infeasible.
+
+---
+
+\subsection*{Basis columns 2 and 3}
+
+\[
+	B = \m{v}{2&3\\1&1}
+\]
+
+\begin{align*}
+	x_B &= B^{-1}b \\
+	&= \m{v}{-1&3\\1&-2} \m{p}{6\\4} \\
+	&= \m{p}{6\\-2}
+\end{align*}
+
+Thus the basic solution is
+\[
+	x = (0, 6, -2, 0).
+\]
+Since $x_3 = -2 < 0$, this solution is infeasible.
+
+---
+
+\subsection*{Basis columns 2 and 4}
+
+\[
+	B = \m{v}{2&0\\1&1}
+\]
+
+\begin{align*}
+	x_B &= B^{-1}b \\
+	&= \m{v}{1&0\\-1&2} \m{p}{6\\4} \\
+	&= \m{p}{3\\1}
+\end{align*}
+
+Thus the basic solution is
+\[
+	x = (0, 3, 0, 1).
+\]
+All entries are nonnegative, so this solution is feasible.
+
+---
+
+\subsection*{Basis columns 3 and 4}
+
+\[
+	B = \m{v}{3&0\\1&1}
+\]
+
+\begin{align*}
+	x_B &= B^{-1}b \\
+	&= \m{v}{1&0\\-1&3} \m{p}{6\\4} \\
+	&= \m{p}{2\\2}
+\end{align*}
+
+Thus the basic solution is
+\[
+	x = (0, 0, 2, 2).
+\]
+All entries are nonnegative, so this solution is feasible.
+
+---
+
+\subsection*{Summary}
+
+\begin{center}
+\begin{tabular}{c|c|c}
+\textbf{Basis Columns} & \textbf{Basic Solution $x$} & \textbf{Feasible?} \\
+\hline
+1, 2 & $(2,\,2,\,0,\,0)$ & Yes \\
+1, 3 & $(3,\,0,\,1,\,0)$ & Yes \\
+1, 4 & $(6,\,0,\,0,\,-2)$ & No \\
+2, 3 & $(0,\,6,\,-2,\,0)$ & No \\
+2, 4 & $(0,\,3,\,0,\,1)$ & Yes \\
+3, 4 & $(0,\,0,\,2,\,2)$ & Yes \\
+\end{tabular}
+\end{center}

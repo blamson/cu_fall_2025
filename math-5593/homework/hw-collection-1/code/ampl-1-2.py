@@ -24,7 +24,7 @@ def main():
         for product, value in ampl.getVariable("Make").get_values().to_list()
     }
 
-    print("\nTons produced per product")
+    print("\nTons produced per product ---")
     [print(f"{product}: {round(tons, 2)}") for product, tons in make_vals.items()]
 
     # Compute hours used per stage
@@ -36,8 +36,14 @@ def main():
         )
         time_used[stage] = hours
 
-    print("\nTime taken per stage")
+    print("\nTime taken per stage ---")
     [print(f"{stage}: {round(hours, 2)}") for stage, hours in time_used.items()]
+
+    rate_param = ampl.getParameter("rate").get_values().to_list()
+    print("\nFinishing Stage Rates ---")
+    for x in rate_param:
+        if x[1] == 'finishing':
+            print(f"{x[0]}: {x[2]}")
 
 if __name__ == "__main__":
     main()
