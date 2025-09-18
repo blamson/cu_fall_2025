@@ -31,6 +31,8 @@ You should be in the clear. For any weird inconsistencies such as stuff working 
 
 [Python API](https://amplpy.ampl.com/en/latest/)
 
+[Textbook datasets/models](https://dev.ampl.com/ampl/books/ampl/examples/index.html)
+
 ## Setup
 
 For this course I have access to a student code. This will eventually be lost to the void but for setting it up:

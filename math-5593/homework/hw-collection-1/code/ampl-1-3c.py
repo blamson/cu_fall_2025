@@ -1,0 +1,56 @@
+from amplpy import AMPL
+from loguru import logger
+import polars as pl
+import plotly.express as px
+
+def main(reheat_hours_list):
+    file_name = "steel4"
+    profit_list = []
+    duals = []
+
+    for reheat_hours in reheat_hours_list:
+        logger.info("Initializing solver")
+        ampl = AMPL()
+        ampl.setOption("solver", "highs")
+        logger.info("Reading data")
+        ampl.read(f"../models/{file_name}.mod")
+        ampl.read_data(f"../data/{file_name}.dat")
+        logger.info(f"Solving with reheat availability = {reheat_hours}")
+        ampl.getParameter("avail")["reheat"] = reheat_hours
+        ampl.solve()
+
+        profit = ampl.getObjective("Total_Profit").value()
+        profit_list.append(round(profit, 2))
+
+        # Dual value (shadow price) for the reheat stage
+        dual_value = ampl.getConstraint("Time")["reheat"].dual()
+        duals.append(round(dual_value, 2))
+
+    # Create a Polars DataFrame with named columns
+    df = pl.DataFrame({
+        "reheat_hours": reheat_hours_list,
+        "profit": profit_list,
+        "time_dual_value": duals
+    }, strict=False)
+
+    # Add difference column: current row minus previous row
+    pl.Config.set_tbl_formatting("MARKDOWN")
+
+    return df
+
+
+if __name__ == "__main__":
+    # reheat_hours_list = list(range(10, 41))
+    test_value_1 = 37 + (9/14)
+    test_value_2 = 37 + (10/14)
+    reheat_hours_list = [test_value_1 - 1, test_value_1, test_value_2 - 1, test_value_2]
+    # reheat_hours_list = [test_value_1, test_value_2]
+
+    df = main(reheat_hours_list)
+    with pl.Config(tbl_rows=40):
+        print(df)
+    df.write_csv("../data/reheat-profit-table-edgecases.csv")
+    # print(df.filter(pl.col("reheat_hours") < 35))
+
+    # fig = px.line(df, x="reheat_hours", y="time_dual_value", title='Profit vs. Reheat Hours')
+    # fig.show()
