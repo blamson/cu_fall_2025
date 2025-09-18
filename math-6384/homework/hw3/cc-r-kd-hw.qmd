@@ -1,0 +1,316 @@
+---
+title: "Case-Control Point Data Homework (First- and Second-Order Properties)"
+format: html
+self-contained: true
+author: Brady Lamson
+date: 9/15/2025
+---
+
+Instructions:  Answer the following questions and write your answers in a word processor.  Mathematical symbols should be written using the equation editor.  Appropriate graphics should be included.  The document may also be created in LaTeX, though this is NOT encouraged.
+
+```{r, message=FALSE, results=FALSE, warning=FALSE, echo=FALSE}
+packages <- c("spatstat", "pbapply", "smacpod")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# options(scipen=9999)
+```
+
+```{r}
+trees <- spatstat.data::urkiola
+```
+
+
+
+# Problem 1 
+
+The `urkiola` data set in the **spatstat package** contains locations of birch (Betula celtiberica) and oak (Quercus robur) trees in a secondary wood in Urkiola Natural Park (Basque country, northern Spain). They are part of a more extensive dataset collected and analysed by Laskurain (2008). The coordinates of the trees are given in meters.  Let the “oak” trees be the cases and “birch” trees be the controls.
+
+## a.
+
+Create a plot of the of the point pattern that distinguishes between the two types of trees.  Do you notice any evidence of clusters?  Explain.
+
+```{r}
+plot(
+    trees, 
+    cols = c("blue", "darkgreen"), 
+    pch=c(1,3), 
+    cex=0.7
+)
+```
+
+Pulling up the map on full screen it's still a little hard to tell. The birch trees seem to be all over, with what may be a distinct cluster in the bottom right. Really though it's hard to say.
+
+For the oak trees I think there are some clusters here. I say that purely because there are parts of the map where they are very sparse and others where they are more densely concentrated. The bottom middle for example looks like a cluster of oaks. 
+
+
+## b.
+
+Create contour plots of the spatial density function for the oak and birch trees.  Use a bandwidth of 14.5 for the oak trees and 15 for the birch trees. Do any differences jump out to you?
+
+```{r}
+birch <- which(trees$marks == "birch")
+
+birch_density <- spdensity(trees[birch, ], sigma = 15)
+oak_density <- spdensity(trees[-birch, ], sigma = 14.5)
+```
+
+```{r, echo=FALSE}
+contour(birch_density, main="Birch Trees: Bandwidth = 15")
+contour(oak_density, main="Oak Trees: Bandwidth = 14.5")
+```
+
+
+Outside of the very center and bottom right the birch density is pretty consistent. We're seeing around $5e^{-5}$ across the entire contour plot which is all around the same order of magnitude. The bottom right corner goes to $1e^{-4}$ in the bottom right corner though, which would be the highest density on this map. This indicates that there may be some clustering there.
+
+For the oak trees we see the largest values in the bottom middle like I had noticed in the previous part. The densities get very low near the top left of the map but are otherwise fairly constant throughout the study area. 
+
+## c.
+
+Estimate the log ratio of the spatial density of the oak trees relative to the birch trees ($r(s)$) using a bandwidth of 16.  Create a contour plot of the log ratio.  Which areas are most inconsistent with the belief that the spatial densities for the two types of trees are the same? 
+
+```{r}
+rtrees <- smacpod::logrr(trees, case="oak", sigma=16)
+contour(rtrees)
+```
+
+In this plot the oak trees are the cases and the birch trees are the control.
+
+What we see is in the bottom center of the plot there is evidence of clustering of oak trees relative to birch trees. The bottom right and top left of the plot shows evidence of clustering of birch trees relative to oaks.
+
+## d.
+
+Construct pointwise 95% tolerance envelopes for $r(s)$ using 499 data sets simulated under the random labeling hypothesis.  Plot the regions above and below the tolerance envelopes in different colors.  Overlay the contour plot of $\tilde{r}(s)$.  What can you conclude?
+
+```{r}
+if (!file.exists("trees-point-envelopes.rda")) {
+  tree_envelopes = logrr(trees, sigma = 16, case = "oak",
+                  nsim = 499, level = 0.95)
+  save(tree_envelopes, file = "trees-point-envelopes.rda")
+}
+load("trees-point-envelopes.rda")
+```
+
+```{r}
+grad = gradient.color.scale(
+    min(tree_envelopes$v, na.rm = TRUE),
+    max(tree_envelopes$v, na.rm = TRUE)
+)
+plot(tree_envelopes, col = grad$col, breaks = grad$breaks)
+```
+
+Same overall conclusion from part c. There is evidence of clustering of oaks with respect to birch trees in the red region and evidence of clustering of birch trees with respect to oak trees in the corners. 
+
+## e. 
+
+Perform a global test of clustering using $\tilde{r}(s)$.  Is there convincing evidence of clustering of one group relative to the other for at least one location in the study area?.
+
+```{r}
+smacpod::logrr.test(tree_envelopes)
+```
+
+We have a p-value of $0.002 < 0.05$, allowing us to conclude that there is significant evidence of clustering of one group relative to another for at least one location in the study area. 
+
+## f. 
+
+Construct a plot for the difference in K functions between the oak trees and the birch trees.  
+- Also include min/max envelopes for this difference using 499 simulated data sets under the random labeling hypothesis.  
+- Also construct 95% pointwise tolerance envelopes.  
+- Also include the mean difference from the simulations.  
+- Provide a legend labeling these things.  
+
+Are there any spatial scales for which the oak trees are more clustered than the birch trees in comparison to what we expect under the random labeling hypothesis (or vice versa)?  If so, what scales?
+
+```{r}
+if (!file.exists("kdenv.rda")) {
+  kdenv = kdest(trees, case = "oak", nsim = 499, level = 0.95)
+  save(kdenv, file = "kdenv.rda")
+}
+load("kdenv.rda")
+
+plot(kdenv, ylab = "difference in K functions", legend=F)
+legend("topleft", legend = c("obs", "avg", "max/min env", "95% env"),
+       lty = c(1, 2, 1, 2), col = c("black", "red", "darkgrey", "lightgrey"),
+       lwd = c(1, 1, 10, 10))
+```
+
+There does seem to be evidence of clustering of oaks being more clustered than birch trees in the spatial scales of approximately $[20, 25]$ or so. There is also evidence of this at around 32 and above. Even outside of these ranges the observed difference in k values is consistently riding the upper part of the tolerance envelope from like 15 and above. 
+
+## g. 
+Perform a global test for clustering of the oak trees relative to the birch trees using the $KD_+$ statistic.  Interpret the results.
+
+```{r}
+kdplus.test(kdenv)
+```
+
+We have a p-value of $0.004$ here which is far less than $\alpha = 0.05$. As such there is significant evidence to conclude that there is clustering of oak trees compared to birch trees at some spatial scale between 0 and 37.475.
+
+# Problem 2
+
+The `paracou` data set in the **spatstat** package contains data for Kimboto trees observed in Paracou, French Guiana.  Let the juveniles be the controls and adults be the cases.  Use a bandwidth of 40 when estimating the densities of the juveniles and 65 for the adults.  Use a bandwidth of 52.5 when estimating the log ratio of spatial densities.
+
+```{r}
+paracou <- spatstat.data::paracou
+```
+
+
+## a.
+Create a plot of the of the point pattern that distinguishes between the two types of trees.  Do you notice any evidence of clusters?  Explain.
+
+```{r}
+plot(
+    paracou, 
+    cols = c("blue", "darkgreen"), 
+    pch=c(1,3), 
+    cex=0.7
+)
+```
+
+There seem to be multiple dense clusters of juvenile trees. The adults don't seem as clustered in comparison. If anything they almost appear more of a regular pattern to them. 
+
+## b.
+Create contour plots of the spatial density function for the adult and juvenile trees.  Use a bandwidth of 65 for the adult trees and 40 for the juvenile trees.  Do any differences jump out to you?
+
+```{r}
+adult <- which(paracou$marks == "adult")
+
+adult_density <- spdensity(paracou[adult, ], sigma = 65)
+juvenile_density <- spdensity(paracou[-adult, ], sigma = 40)
+```
+
+```{r, echo=FALSE}
+contour(adult_density, main="Adult Trees: Bandwidth = 65")
+contour(juvenile_density, main="Juvenile Trees: Bandwidth = 40")
+```
+
+For the adult trees there seems to be 2 distinct clusters, maybe 3. One in the middle left, one in the bottom left corner. Everywhere else seems to have a far lower density of adult trees.
+
+For the juvenile ones, there's a lot more contour lines. There seem to be multiple regions that could be clusters, especially along the middle right of the plot. 
+
+## c.
+Estimate the log ratio of the spatial density of the adult trees relative to the juvenile trees ($r(s)$) using a bandwidth of 52.5.  Create a contour plot of the log ratio.  Which areas are most inconsistent with the belief that the spatial densities for the two types of trees are the same? 
+
+```{r}
+rparacou <- smacpod::logrr(paracou, case="adult", sigma=52.5)
+contour(rparacou)
+```
+
+The areas most inconsistent with the belief that both spatial densities are the same is the bottom left. That region shows a lot of evidence of clustering of juvenile trees compared to adult trees. 
+
+## d.
+Construct pointwise 95% tolerance envelopes for $r(s)$ using 499 data sets simulated under the random labeling hypothesis.  Plot the regions above and below the tolerance envelopes in different colors.  Overlay the contour plot of $\tilde{r}(s)$).  What can you conclude?
+
+```{r}
+if (!file.exists("paracou_envelopes.rda")) {
+  paracou_envelopes = logrr(paracou, sigma = 52.5, case = "adult",
+                  nsim = 499, level = 0.95)
+  save(paracou_envelopes, file = "paracou_envelopes.rda")
+}
+load("paracou_envelopes.rda")
+```
+
+```{r}
+grad = gradient.color.scale(
+    min(paracou_envelopes$v, na.rm = TRUE),
+    max(paracou_envelopes$v, na.rm = TRUE)
+)
+plot(paracou_envelopes, col = grad$col, breaks = grad$breaks)
+```
+
+What we see here is similar to the observations made earlier. There is evidence of clustering of juvenile trees compared to adult trees in the bottom right. In the bottom and top left we see evidence of clustering of adult trees compared to juvenile trees. 
+
+## e.
+Perform a global test of clustering using $\tilde{r}(s)$).  Is there convincing evidence of clustering of one group relative to the other for at least one location in the study area?.
+
+```{r}
+smacpod::logrr.test(paracou_envelopes)
+```
+
+Here we have a p-value of $0.03 < 0.05$. Thus there is significant evidence to conclude that the spatial densities of the two groups differ at some region of the study area. In other words, there is significant evidence to conclude that there is clustering of one group relative to the other in the study area. 
+
+## f.
+Construct a plot for the difference in K functions between the adult trees and the juvenile trees.  Also include min/max envelopes for this difference using 499 simulated data sets under the random labeling hypothesis.  Also construct 95% pointwise tolerance envelopes.  Also include the mean difference from the simulations.  Provide a legend labeling these things.  Are there any spatial scales for which the adult trees are more clustered than the juvenile trees in comparison to what we expect under the random labeling hypothesis (or vice versa)?  If so, what scales?
+
+```{r}
+if (!file.exists("kdenv_paracou.rda")) {
+  kdenv_paracou = kdest(paracou, case = "adult", nsim = 499, level = 0.95)
+  save(kdenv_paracou, file = "kdenv_paracou.rda")
+}
+load("kdenv_paracou.rda")
+
+plot(kdenv_paracou, ylab = "difference in K functions", legend=F)
+legend("topleft", legend = c("obs", "avg", "max/min env", "95% env"),
+       lty = c(1, 2, 1, 2), col = c("black", "red", "darkgrey", "lightgrey"),
+       lwd = c(1, 1, 10, 10))
+```
+
+Based on this plot there really isn't much evidence to indicate a difference in k-functions at any spatial scales here. Everything we have observed falls very comfortably in line with the tolerance envelopes. 
+
+## g.
+Perform a global test for clustering of the adult trees relative to the juvenile trees using the $KD_+$ statistic.  Interpret the results.
+
+```{r}
+kdplus.test(kdenv_paracou)
+```
+
+Here we have a p-value of $0.788$ which is far larger than $0.05$. Thus, there is not significant evidence to reject the null hypothesis that the k-function is the same across all spatial scales between 0 and 100. In other words, there is not significant evidence to conclude clustering of one group of trees relative to the other according to the k-function. 
+
+# Problem 3
+
+**Problem:** 
+
+Let $\lambda_0(s)$ denote a control intensity function and $\lambda_1(s)$ denote a case intensity function defined over a study area $D$.  Assume that $\lambda_1(s)=c\lambda_0(s)$ for all $s\in D$.  Show that in this case, $r(s)=0$ for all $s\in D$.
+
+**Solution:**
+
+$r(s)$ is defined as:
+
+$$
+    r(s) = 
+    \ln\left( \frac{\lambda_1(s)}{\lambda_0(s)} \right) - 
+    \ln\left( \frac{\int_D\lambda_1(\mu)d\mu}{\int_D\lambda_0(\mu)d\mu} \right) \\
+$$
+
+Building off of the assumptions shown in the problem:
+
+\begin{align}
+    r(s) &= 
+    \ln\left( \frac{c\lambda_0(s)}{\lambda_0(s)} \right) - 
+    \ln\left( \frac{\int_Dc\lambda_0(\mu)d\mu}{\int_D\lambda_0(\mu)d\mu} \right) \\
+    &= \ln(c) - \ln\left(c \frac{\int_D\lambda_0(\mu)d\mu}{\int_D\lambda_0(\mu)d\mu} \right) \\
+    &= \ln(c) - \ln(c) \\
+    &= 0
+\end{align}
+
+Therefore, $r(s) = 0 \;\forall s \in D$
+
+# Problem 4
+
+**Problem:** 
+
+Let $\lambda_0(s)$ denote a control intensity function and $\lambda_1(s)$ denote a case intensity function defined over a study area $D$.  Assume that $\lambda_1(s)=c\lambda_0(s)$ for all $s\in D$. Show that $f(s)=g(s)$ for all $s\in D$, where $f$ and $g$ are the spatial densities of the cases and controls, respectively.
+
+**Solution:** 
+
+$f(s)$ and $g(s)$ are defined as:
+
+\begin{align}
+    f(s) &= \frac{\lambda_1(s)}{\int_D\lambda_1(\mu)d\mu} & 
+    g(s) &= \frac{\lambda_0(s)}{\int_D\lambda_0(\mu)d\mu} 
+\end{align}
+
+Building off the assumptions from the problem statement:
+
+\begin{align}
+    f(s) &= \frac{\lambda_1(s)}{\int_D\lambda_1(\mu)d\mu} \\
+    &= \frac{c\lambda_0(s)}{\int_D c\lambda_0(\mu)d\mu} \\
+    &= \frac{c}{c} \frac{\lambda_0(s)}{\int_D\lambda_0(\mu)d\mu} \\
+    &= g(s)
+\end{align}
+
+Therefore, $f(s)=g(s) \;\forall s \in D$. 
