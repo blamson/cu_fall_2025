@@ -1,0 +1,51 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{amplpy} \PYG{k+kn}{import} \PYG{n}{AMPL}
+\PYG{k+kn}{from} \PYG{n+nn}{loguru} \PYG{k+kn}{import} \PYG{n}{logger}
+
+\PYG{k}{def} \PYG{n+nf}{main}\PYG{p}{():}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Initializing solver\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl} \PYG{o}{=} \PYG{n}{AMPL}\PYG{p}{()}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{setOption}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}solver\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}highs\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{file\PYGZus{}name} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}steel4\PYGZdq{}}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Reading data\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../models/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{file\PYGZus{}name}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{.mod\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read\PYGZus{}data}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../data/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{file\PYGZus{}name}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{e.dat\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Running solution\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{solve}\PYG{p}{()}
+
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Printing Results\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{total\PYGZus{}profit} \PYG{o}{=} \PYG{n+nb}{round}\PYG{p}{(}\PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getObjective}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Total\PYGZus{}Profit\PYGZdq{}}\PYG{p}{)}\PYG{o}{.}\PYG{n}{value}\PYG{p}{(),}\PYG{l+m+mi}{2}\PYG{p}{)}
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{Total Profit:\PYGZdq{}}\PYG{p}{,} \PYG{n}{total\PYGZus{}profit}\PYG{p}{)}
+
+    \PYG{n}{make\PYGZus{}vals} \PYG{o}{=} \PYG{p}{\PYGZob{}}
+        \PYG{n}{product}\PYG{p}{:} \PYG{n}{value}
+        \PYG{k}{for} \PYG{n}{product}\PYG{p}{,} \PYG{n}{value} \PYG{o+ow}{in} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getVariable}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Make\PYGZdq{}}\PYG{p}{)}\PYG{o}{.}\PYG{n}{get\PYGZus{}values}\PYG{p}{()}\PYG{o}{.}\PYG{n}{to\PYGZus{}list}\PYG{p}{()}
+    \PYG{p}{\PYGZcb{}}
+
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{Tons produced per product \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZdq{}}\PYG{p}{)}
+    \PYG{p}{[}\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{product}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{: }\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{round}\PYG{p}{(}\PYG{n}{tons}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{2}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)} \PYG{k}{for} \PYG{n}{product}\PYG{p}{,} \PYG{n}{tons} \PYG{o+ow}{in} \PYG{n}{make\PYGZus{}vals}\PYG{o}{.}\PYG{n}{items}\PYG{p}{()]}
+
+    \PYG{c+c1}{\PYGZsh{} Compute hours used per stage}
+    \PYG{n}{time\PYGZus{}used} \PYG{o}{=} \PYG{p}{\PYGZob{}\PYGZcb{}}
+    \PYG{k}{for} \PYG{n}{stage} \PYG{o+ow}{in} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getSet}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}STAGE\PYGZdq{}}\PYG{p}{):}
+        \PYG{n}{hours} \PYG{o}{=} \PYG{n+nb}{sum}\PYG{p}{(}
+            \PYG{n}{make\PYGZus{}vals}\PYG{p}{[}\PYG{n}{product}\PYG{p}{]} \PYG{o}{/} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getParameter}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}rate\PYGZdq{}}\PYG{p}{)[}\PYG{n}{product}\PYG{p}{,} \PYG{n}{stage}\PYG{p}{]}
+            \PYG{k}{for} \PYG{n}{product} \PYG{o+ow}{in} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getSet}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}PROD\PYGZdq{}}\PYG{p}{)}
+        \PYG{p}{)}
+        \PYG{n}{time\PYGZus{}used}\PYG{p}{[}\PYG{n}{stage}\PYG{p}{]} \PYG{o}{=} \PYG{n}{hours}
+
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{Time taken per stage \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZdq{}}\PYG{p}{)}
+    \PYG{p}{[}\PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{stage}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{: }\PYG{l+s+si}{\PYGZob{}}\PYG{n+nb}{round}\PYG{p}{(}\PYG{n}{hours}\PYG{p}{,}\PYG{+w}{ }\PYG{l+m+mi}{2}\PYG{p}{)}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)} \PYG{k}{for} \PYG{n}{stage}\PYG{p}{,} \PYG{n}{hours} \PYG{o+ow}{in} \PYG{n}{time\PYGZus{}used}\PYG{o}{.}\PYG{n}{items}\PYG{p}{()]}
+
+    \PYG{n}{rate\PYGZus{}param} \PYG{o}{=} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getParameter}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}rate\PYGZdq{}}\PYG{p}{)}\PYG{o}{.}\PYG{n}{get\PYGZus{}values}\PYG{p}{()}\PYG{o}{.}\PYG{n}{to\PYGZus{}list}\PYG{p}{()}
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+se}{\PYGZbs{}n}\PYG{l+s+s2}{Finishing Stage Rates \PYGZhy{}\PYGZhy{}\PYGZhy{}\PYGZdq{}}\PYG{p}{)}
+    \PYG{k}{for} \PYG{n}{x} \PYG{o+ow}{in} \PYG{n}{rate\PYGZus{}param}\PYG{p}{:}
+        \PYG{k}{if} \PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]} \PYG{o}{==} \PYG{l+s+s1}{\PYGZsq{}finishing\PYGZsq{}}\PYG{p}{:}
+            \PYG{n+nb}{print}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{: }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{x}\PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{]}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+
+\PYG{k}{if} \PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZdq{}}\PYG{p}{:}
+    \PYG{n}{main}\PYG{p}{()}
+\end{Verbatim}

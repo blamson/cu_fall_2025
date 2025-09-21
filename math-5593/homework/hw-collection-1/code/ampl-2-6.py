@@ -6,14 +6,16 @@ def main():
     ampl = AMPL()
     ampl.setOption("solver", "highs")
 
-    file_name = "steel3"
+    file_name = "cut_hw"
     logger.info("Reading data")
     ampl.read(f"../models/{file_name}.mod")
     ampl.read_data(f"../data/{file_name}.dat")
 
     logger.info("Running solution")
     ampl.solve()
-    ampl.eval("display Time, Make.val, Make.rc;")
+
+    ampl.eval("display Number, Cut;")
+    ampl.eval("display Fill.slack;")
 
 if __name__ == "__main__":
     main()

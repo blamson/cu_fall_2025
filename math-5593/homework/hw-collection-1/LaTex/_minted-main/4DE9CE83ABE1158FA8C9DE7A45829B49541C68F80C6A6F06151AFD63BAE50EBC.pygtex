@@ -1,0 +1,23 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{amplpy} \PYG{k+kn}{import} \PYG{n}{AMPL}
+\PYG{k+kn}{from} \PYG{n+nn}{loguru} \PYG{k+kn}{import} \PYG{n}{logger}
+
+\PYG{k}{def} \PYG{n+nf}{main}\PYG{p}{():}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Initializing solver\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl} \PYG{o}{=} \PYG{n}{AMPL}\PYG{p}{()}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{setOption}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}solver\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}highs\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{file\PYGZus{}name} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}cut\PYGZus{}hw\PYGZdq{}}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Reading data\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../models/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{file\PYGZus{}name}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{.mod\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read\PYGZus{}data}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../data/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{file\PYGZus{}name}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{.dat\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Running solution\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{solve}\PYG{p}{()}
+
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{eval}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}display Number, Cut;\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{eval}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}display Fill.slack;\PYGZdq{}}\PYG{p}{)}
+
+\PYG{k}{if} \PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZdq{}}\PYG{p}{:}
+    \PYG{n}{main}\PYG{p}{()}
+\end{Verbatim}

@@ -1,3 +1,307 @@
 \section*{Homework 6}
 
 Do exercise 2-6 from AMPL book.
+
+The output of a paper mill consists of standard rolls 110 inches wide, which are cut into small rolls to meet orders. This week there are orders for rolls of the following widths:
+
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|cc|}
+		\hline
+		Width & Orders \\
+		\hline
+		20'' & 48 \\
+		45'' & 35 \\
+		50'' & 24 \\
+		55'' & 10 \\
+		75'' & 8 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+The owner of the mill wants to know what cutting patterns to apply so as to fill the orders using the smallest number of 110'' rolls.
+
+\subsection*{Relevant Files:}
+
+The AMPL book provides sample model and data files for the cutting problem and I used them as a base. Here are those files with the knapsack part of the model removed.
+
+\noindent\textbf{cut.mod}
+
+\begin{lstlisting}
+param roll_width > 0;         # width of raw rolls
+
+set WIDTHS;                   # set of widths to be cut
+param orders {WIDTHS} > 0;    # number of each width to be cut
+
+param nPAT integer >= 0;      # number of patterns
+set PATTERNS = 1..nPAT;      # set of patterns
+
+param nbr {WIDTHS,PATTERNS} integer >= 0;
+
+   check {j in PATTERNS}:
+      sum {i in WIDTHS} i * nbr[i,j] <= roll_width;
+
+                            # defn of patterns: nbr[i,j] = number
+                            # of rolls of width i in pattern j
+
+var Cut {PATTERNS} integer >= 0;   # rolls cut using each pattern
+
+minimize Number:                   # minimize total raw rolls cut
+   sum {j in PATTERNS} Cut[j];
+
+subject to Fill {i in WIDTHS}:
+   sum {j in PATTERNS} nbr[i,j] * Cut[j] >= orders[i];
+\end{lstlisting}
+
+\noindent\textbf{cut.dat}
+
+\begin{lstlisting}
+data;
+
+param roll_width := 110 ;
+
+param: WIDTHS: orders :=
+          20     48
+          45     35
+          50     24
+          55     10
+          75      8  ;
+\end{lstlisting}
+
+It is worth noting that the \texttt{cut.mod} file is already set up for integer solutions. This file will need to be modified to acquire the non-integer solutions the textbook problems except for parts A-C. 
+
+\subsection*{A}
+
+\prob
+
+A cutting pattern consists of a certain number of rolls of each width, such as two of 45'' and one of 20'', or one of 50'' and one of 55''. Suppose, to start with, that we consider only the following six patterns.
+
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|c|cccccc|}
+		\hline
+		Width & 1 & 2 & 3 & 4 & 5 & 6 \\
+		\hline
+		20'' & 3 & 1 & 0 & 2 & 1 & 3 \\
+		45'' & 0 & 2 & 0 & 0 & 0 & 1 \\
+		50'' & 1 & 0 & 1 & 0 & 0 & 0 \\
+		55'' & 0 & 0 & 1 & 1 & 0 & 0 \\
+		75'' & 0 & 0 & 0 & 0 & 1 & 0 \\
+		\hline
+	\end{tabular}
+	\caption{Number of rolls of given width created for each pattern.}
+\end{table}
+
+How many rolls should be cut according to each pattern, to minimum the number of 110'' rolls used? Formulate and solve this problem as a linear program, assuming that the number of smaller rolls produced need only be greater than or equal to the number ordered.
+
+\sol
+
+For this part we first need to add these patterns to the data file. This requires an overall rework of the provided data file. I would normally only show the modified section for brevity but really I reworked the whole thing.
+
+\begin{lstlisting}
+data;
+
+param roll_width := 110 ;
+set WIDTHS := 20 45 50 55 75;
+
+param: orders :=
+    20     48
+    45     35
+    50     24
+    55     10
+    75      8  ;
+
+param nPAT := 6;
+
+param nbr:
+       1  2  3  4  5  6 :=
+20      3   1   0   2   1   3
+45      0   2   0   0   0   1
+50      1   0   1   0   0   0
+55      0   0   1   1   0   0
+75      0   0   0   0   1   0 ;
+
+\end{lstlisting}
+
+The changes made are meant to accomodate the set up of the model file. 
+
+As we can see there is now a set of widths which we use to provide context to the orders and patterns. We now have a parameter \texttt{nPAT} which provides the number of patterns to the model. We also have all of the patterns and how they relate to the weights. 
+
+From there the provided model needs no modifications. All I do is remove the integer specification on \texttt{var CUT} so that we can get non-integer solutions. 
+
+\noindent\textbf{NOTE:} As with previous problems all related python scripts are provided in the appendix for this problem.
+
+Below are the results from running the AMPL code \texttt{ampl.eval(''display Number, Cut;'')}.
+
+\textbf{Total Rolls: 49.5}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		Cut & Times Used \\
+		\hline 
+		1 & 7.5 \\
+		2 & 17.5 \\
+		3 & 16.5 \\
+		4 & 0 \\
+		5 & 8 \\
+		6 & 0 \\
+		\hline
+	\end{tabular}
+	\caption{Results of \texttt{display Cut}}
+	\label{tab:<+label+>}
+\end{table}
+
+What we can note here are the fractional amounts for the cuts. Realistically for this kind of problem we can't do 7.5 pattern 1 cuts. So if we were to practically try to use this solution we'd need to round all of these up and end up using more rolls. This is why part d later calls for an integer solution to this problem. It's because $49.5$ rolls is ambiguous due to the fractional number of cuts being ambiguous. This solution is a start, but it's less helpful than we may want it to be. 
+
+\subsection*{B}
+
+\prob
+
+Re-solve the problem, with the restriction that the number of rolls produced in each size must be between $10\%$ under and $40\%$ over the number ordered. 
+
+\sol
+
+This problem is fairly straightforward. A simple modification to the model file is all that is necessary. We specifically alter the \texttt{Fill} constraint to provide a range of appropriate values. This is done by simply scaling the \texttt{orders[i]} value on either side of what is now a double inequality.
+
+\begin{lstlisting}
+subject to Fill {i in WIDTHS};
+0.9 * orders[i] <= sum {j in PATTERNS} nbr[i, j] * Cut[j] <= 1.4 * orders[i]
+\end{lstlisting}
+
+This drastically decreases the overall number of cuts and total rolls we need. 
+
+\textbf{Total Rolls: 44.55}
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		Cut & Times Used \\
+		\hline 
+		1 & 7.6 \\
+		2 & 15.75 \\
+		3 & 14 \\
+		4 & 0 \\
+		5 & 7.2 \\
+		6 & 0 \\
+		\hline
+	\end{tabular}
+	\caption{Results of \texttt{display Cut}}
+	\label{tab:<+label+>}
+\end{table}
+
+
+We run into the same problem here. What is 7.2 cuts of pattern 5 even mean? Also of note here is that this change didn't result in an increase in any cuts outside of pattern 1. One thing that would have been interesting is if this relaxed upper bound resulted in some pattern now being overproduced to result the number of rolls but that doesn't seem to be happening here.
+
+\subsection*{C}
+
+\prob 
+
+Find another pattern that, when added to those above, improves the optimal solution.
+
+\sol
+
+This one was interesting. Going back to the model and data in part A, we need to figure out where the inefficiences in our patterns are. We can do this by checking the \texttt{slack} values on our \texttt{Fill} constraint. The slack values here will tell us which widths of roll are being over or under-produced. 
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		Width & Slack \\
+		\hline 
+		20'' & 0 \\
+		45'' & 0 \\
+		50'' & 0 \\
+		55'' & 6.5 \\
+		75'' & 0 \\
+		\hline
+	\end{tabular}
+	\caption{Results of \texttt{display Fill.slack}}
+	\label{tab:<+label+>}
+\end{table}
+
+What we can see from this table is that we produce way more 55'' rolls than we need to. We only need 10 55'' rolls according the orders and we're overproducing that width by over half. Why is that? If we look at part A again and check the most used patterns, we make the most of patterns 2 and 3. Pattern 3 is what is important here. It creates 1 50'' roll and 1 55'' roll. Why is that important? It is one of the only patterns that produces 50'' rolls. I'm not entirely sure why this pattern is used over pattern 1 for creating 50'' rolls, but it is. What this hints at is that we could use a more efficient pattern for creating 50'' rolls. To that end, I create a new pattern that only produces 2 50'' rolls. 
+
+\begin{lstlisting}
+param nPAT := 7;
+
+param nbr:
+        1   2   3   4   5   6  7:=
+20      3   1   0   2   1   3  0
+45      0   2   0   0   0   1  0
+50      1   0   1   0   0   0  2
+55      0   0   1   1   0   0  0
+75      0   0   0   0   1   0  0;
+\end{lstlisting}
+
+Re-running the original model with this new pattern gives us the following results:
+
+\noindent\textbf{Total Rolls Used:} 46.25
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		Cut & Times Used \\
+		\hline
+		1 & 7.5 \\
+		2 & 17.5 \\
+		3 & 10 \\
+		4 & 0 \\
+		5 & 8 \\
+		6 & 0 \\
+		7 & 3.25 \\
+		\hline
+		Width & Slack \\
+		\hline 
+		20'' & 0 \\
+		45'' & 0 \\
+		50'' & 0 \\
+		55'' & 0 \\
+		75'' & 0 \\
+		\hline
+	\end{tabular}
+	\caption{Results of \texttt{display Cut, Fill.slack}}
+	\label{tab:<+label+>}
+\end{table}
+
+The number of rolls we need has gone down by 3, to $46.25$ and now as we can see we are no longer overproducing on any of the widths. 
+
+\subsection*{D}
+
+\prob
+
+All of the above solutions use fractional number of rolls. Can you find solutions that also satisfy the constraints, but that cut a whole number of rolls for each pattern? How much does your whole-number solution cause the objective function value to go up in each case?
+
+\sol
+
+For this we revert back to the original version of the model file.
+
+\begin{lstlisting}
+var Cut {Patterns} integer >= 0;
+\end{lstlisting}
+
+we then just rerun the model and data files from the previous parts one last time.
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Part & Rolls Float & Rolls Integer \\
+		\hline
+		A & 49.5 & 50 \\
+		B & 44.55 & 46 \\
+		C & 46.25 & 47 \\
+		\hline
+	\end{tabular}
+	\caption{Objective value comparison for each homework part.}
+	\label{tab:<+label+>}
+\end{table}
+
+Across the board we see a slight increase in rolls produced. This makes sense. A integer solution is inherently more restrictive so we have to make some concessions to accomodate that requirement.
+
+\subsection*{Homework 6 Appendix}
+
+\input{latex_chunks/ampl-2-6}

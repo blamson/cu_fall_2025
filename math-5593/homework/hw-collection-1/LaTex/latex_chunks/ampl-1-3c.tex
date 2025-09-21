@@ -1,3 +1,4 @@
+\begin{minted}[fontsize=\small,breaklines,linenos]{python}
 from amplpy import AMPL
 from loguru import logger
 import polars as pl
@@ -8,6 +9,9 @@ def main(reheat_hours_list):
     profit_list = []
     duals = []
 
+    # Goal here is to populate a dataframe we can examine through all of the necessary runs
+    # We initiate AMLP() in this loop so thats its fully reset between runs.
+    # Not doing this can result in weird results for edge case scenarios.
     for reheat_hours in reheat_hours_list:
         logger.info("Initializing solver")
         ampl = AMPL()
@@ -26,15 +30,12 @@ def main(reheat_hours_list):
         dual_value = ampl.getConstraint("Time")["reheat"].dual()
         duals.append(round(dual_value, 2))
 
-    # Create a Polars DataFrame with named columns
     df = pl.DataFrame({
         "reheat_hours": reheat_hours_list,
         "profit": profit_list,
         "time_dual_value": duals
     }, strict=False)
 
-    # Add difference column: current row minus previous row
-    pl.Config.set_tbl_formatting("MARKDOWN")
 
     return df
 
@@ -53,3 +54,4 @@ if __name__ == "__main__":
 
     # fig = px.line(df, x="reheat_hours", y="profit, title='Profit vs. Reheat Hours')
     # fig.show()
+\end{minted}

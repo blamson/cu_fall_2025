@@ -2,11 +2,62 @@
 
 Do exercise 1-3 from AMPL book
 
+This exercise deals with some issues of sensitivity in the steel models.
+
 \subsection*{A}
 
-\noindent\textbf{Solution:}
+\prob
 
-Running the following code, \texttt{ampl.eval("Display Time, Make.rc")}, gives us the output below:
+For the linear program of Figures 1-5a and 1-5b, display \texttt{Time} and \texttt{Make.rc}. What do these values tell you about the solution.
+
+\noindent\textbf{Relevant Files:}
+
+\noindent\textbf{steel3.mod}
+
+\begin{lstlisting}
+set PROD;  # products
+
+param rate {PROD} > 0;     # produced tons per hour
+param avail >= 0;          # hours available in week
+param profit {PROD};       # profit per ton
+
+param commit {PROD} >= 0;  # lower limit on tons sold in week
+param market {PROD} >= 0;  # upper limit on tons sold in week
+
+var Make {p in PROD} >= commit[p], <= market[p]; # tons produced
+
+maximize Total_Profit: sum {p in PROD} profit[p] * Make[p];
+
+               # Objective: total profits from all products
+
+subject to Time: sum {p in PROD} (1/rate[p]) * Make[p] <= avail;
+
+               # Constraint: total of hours used by all
+               # products may not exceed hours available
+
+\end{lstlisting}
+
+\noindent\textbf{steel3.dat}
+
+\begin{lstlisting}
+data;
+
+set PROD := bands coils plate;
+
+param:    rate  profit  commit  market :=
+  bands    200    25     1000    6000
+  coils    140    30      500    4000
+  plate    160    29      750    3500 ;
+
+param avail := 40;
+\end{lstlisting}
+
+\sol
+
+\textbf{NOTE:} My basic python script for this part is provided in the HW5 appendix at the end of this section.
+
+
+Running the code, \texttt{ampl.eval("Display Time, Make.rc")}, gives us the output below:
 
 \begin{align*}
 	\text{time}_{dv} &= 4640 \\
@@ -15,7 +66,17 @@ Running the following code, \texttt{ampl.eval("Display Time, Make.rc")}, gives u
 	\text{plates}_{rc} &\approx 0
 \end{align*}
 
-The interpretation of these values is as follows. First, time. If we were to add an extra unit of time (an hour) to availability we would see additional profit. To be precise we would see an increase of 4640 units of profit (dollar) per additional hour of availability. For bands, we see the same kind of thing. Every unit (ton) increase in the upper bound of bands made would see an increase of 1.80 dollars of profit. Coils has a negative coefficient. What this means is that every ton decrease in the lower bound of coils made would see an increase in profit by 3.14 dollars. This makes sense, we're maxing out the number of bands we can make and only producing the absolute minimum number of coils. Plates have a coefficient of 0, meaning that increasing or decreasing the bounds on its production would have no impact on profit. This also makes sense intuitively as production of plates falls within the provided bounds already. It is important to note that for these dual values and reduced costs, this relationship may not hold forever. These values are subject to change as constraints are modified.
+The interpretation of these values is as follows. 
+
+First, time. If we were to add an extra unit of time (an hour) to availability we would see additional profit. To be precise we would see an increase of 4640 units of profit (dollar) per additional hour of availability. 
+
+For bands, we see the same kind of thing. Every unit (ton) increase in the upper bound of bands made would see an increase of 1.80 dollars of profit. 
+
+Coils has a negative coefficient. What this means is that every ton decrease in the lower bound of coils made would see an increase in profit by 3.14 dollars. This makes sense, we're maxing out the number of bands we can make and only producing the absolute minimum number of coils. 
+
+Plates have a coefficient of 0, meaning that increasing or decreasing the bounds on its production would have no impact on profit. This also makes sense intuitively as production of plates falls within the provided bounds already. 
+
+It is important to note that for these dual values and reduced costs, this relationship may not hold forever. These values are subject to change as constraints are modified.
 
 \subsection*{B}
 
@@ -38,11 +99,17 @@ Total Profit & $\approx 194828.57$ & $\approx 190071.43$ \\
 \caption{Comparison of solution values and total profit for Steel3 and Steel4 models.}
 \end{table}
 
-To explain what's going on here we need to understand the new rate constraint. \texttt{reheat} has the same rate across all 3 products. What this means is that plates, with their very high profit coefficient of 2.9, outclass bands for this stage. Bands still come out on top for the rolling stage, which is why we still make so many bands, but this change is why we produce so much less of them.
+The table for this part show a massive increase in the number of plates produced and a massive decrease in the number of bands. Why is this? 
+
+To explain what's going on here we need to understand the new rate constraint. \texttt{reheat} has the same rate across all 3 products. Previously bands had the highest rate of production which made up for it having the lowest profit coefficient of 2.5. \texttt{reheat}, as mentioned, levels the playing field a bit. Since, for that stage at least, all 3 products have the same rate, the profit coefficient matters a lot more. 
+
+What this means is that plates, with their very high profit coefficient of 2.9, outclass bands for this stage. Bands still come out on top for the rolling stage, which is why we still make so many bands, but this change is why we produce so much less of them. Coils still go completely ignored in this model, we still only produce the bare minimum required. 
 
 \subsection*{C}
 
 \noindent\textbf{Solution}
+
+\textbf{NOTE:} For problems C and D the python script used is provided in the Homework 5 Appendix shown below this problem.
 
 Using \texttt{amplpy} and saving the profit and reheat hours from each run gives us the following table:
 
@@ -62,9 +129,9 @@ Using \texttt{amplpy} and saving the profit and reheat hours from each run gives
 \end{table}
 
 
-This table verifies what the problem statement wanted us to check. We have a constant dual value for reheating up until we hit 38 reheat hours. From there, it has no influence on our profit whatsoever. 
+This table verifies what the problem statement wanted us to check. We have a constant dual value for reheating up until we hit 38 reheat hours. From there, it has no influence on our profit whatsoever. This is likely due to the constraint on the rolling stage holding back any additional gains from a more generous reheating availability. These just become excess hours that go unused.  
 
-Next we check some other arbitrary values. We start with the provided $37 \frac{9}{14}$. To test this we also solve for $36 \frac{9}{14}$ so we can get the profit difference per unit difference. We also test just beyond this value and do the exact same process for $37 \frac{10}{14}$. 
+Next we check some other arbitrary values. We start with the provided $37 \frac{9}{14}$. To test this we also solve for $36 \frac{9}{14}$ so compare the dual values. We also test just beyond this value and do the exact same process for $37 \frac{10}{14}$. 
 
 This gives us the following results:
 
@@ -80,9 +147,9 @@ This gives us the following results:
     \end{tabular}
 \end{table}
 
-These tables verify the problem statement. Results below that $37 \frac{9}{14}$ still show that 1800 profit increase. Right as soon as we surpass it even by a tiny amount we see diminishing returns.
+These tables verify the problem statement. Results below that $37 \frac{9}{14}$ still show that 1800 profit increase. Right as soon as we surpass it even by a tiny amount, the dual value shows us that we would see no additional benefit. 
 
-One interesting observation is that $37 \frac{10}{14}$ doesn't actually see an 1800 profit increase despite the dual value of $36 \frac{10}{14}$. I wonder why that is. It must be that the slope at that point is still 1800, but the tiny part of $37 \frac{10}{14}$ that exceeds our threshold means we don't quite capture 1800 in profit for a one unit increase. This means the dual value doesn't quite tell the whole picture. 
+One interesting observation is that $37 \frac{10}{14}$ doesn't actually see an 1800 profit increase despite the dual value of $36 \frac{10}{14}$. I wonder why that is. It must be that the slope at that point is still 1800, but the tiny part of $37 \frac{10}{14}$ that exceeds our threshold means we don't quite capture 1800 in profit for a one unit increase. Essentially that the slope will flatten out before we see all 1800 dollars of profit realized. This means the dual value doesn't quite tell the whole picture. 
 
 \begin{figure}[htbp]
     \centering
@@ -90,6 +157,8 @@ One interesting observation is that $37 \frac{10}{14}$ doesn't actually see an 1
     \caption{Plot created using the integer range of 35 through 40.}
     \label{fig:your_label}
 \end{figure}
+
+The plot here also provides further evidence of this thought. Though it is limited, only showing integer tests from 35-40, we still see that profit starts leveling off more going from 37 to 38. And then, of course, we see no additional gains to profit extending beyond 38 hours. 
 
 \pagebreak
 
@@ -102,6 +171,8 @@ We extend the plot down to 25 reheating hours here.
     \includegraphics[width=0.8\textwidth]{../images/profit-vs-reheat-2.png}
     \caption{Plot created using the integer range of 25 through 40.}
 \end{figure}
+
+Interestingly enough we see the slope had changed well before we hit 35 hours. We see the first changes in the slope of this plot once we hit 30 available hours of reheat time. This isn't surprising. As an untested hunch, this is possibly due to increased access to unused \texttt{rolling} stage availability. With too little \texttt{reheat} availability, we can't properly utilize all of the availability of the other stage. So we see more steep growth early on.
 
 We also extend our table to show all of the profit changes as we move from 10 to 25 available reheating hours.
 
@@ -149,3 +220,16 @@ Running through the math for all products in the reheating stage:
 \]
 
 Our minimum production requirements require more than 11 hours of reheating time, so anything below $11.25$ results in no feasible solution being possible. 
+
+\pagebreak
+\subsection*{Homework 5 Appendix}
+
+In this section I include python scripts that would be too distracting to include in the homework writeup itself.
+
+Below is the script used for 1-3 part A.
+
+\input{latex_chunks/ampl-1-3a.tex}
+
+Below is the script used for 1-3 parts C and D.
+
+\input{latex_chunks/ampl-1-3c.tex}
