@@ -3,3 +3,4 @@
 *.rda
 .Rhistory
 *.idea
+*.aux
