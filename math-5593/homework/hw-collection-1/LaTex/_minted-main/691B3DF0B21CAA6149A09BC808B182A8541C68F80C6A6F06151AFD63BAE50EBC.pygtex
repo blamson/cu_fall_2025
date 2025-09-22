@@ -1,0 +1,75 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{amplpy}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{AMPL}
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{loguru}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{logger}
+\PYG{k+kn}{import}\PYG{+w}{ }\PYG{n+nn}{polars}\PYG{+w}{ }\PYG{k}{as}\PYG{+w}{ }\PYG{n+nn}{pl}
+
+
+\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{ampl\PYGZus{}var\PYGZus{}to\PYGZus{}df}\PYG{p}{(}\PYG{n}{ampl}\PYG{p}{,} \PYG{n}{var\PYGZus{}name}\PYG{p}{:} \PYG{n+nb}{str}\PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{pl}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{:}
+\PYG{+w}{    }\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Goal here is to turn the clunky list aof tuples mpl provides and create a clean}
+\PYG{l+s+sd}{    usable dataframe}
+
+\PYG{l+s+sd}{    :param ampl: the ampl solver}
+\PYG{l+s+sd}{    :param var\PYGZus{}name: the variable we want to make a dataframe of}
+\PYG{l+s+sd}{    :return: a dataframe}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{values} \PYG{o}{=} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getVariable}\PYG{p}{(}\PYG{n}{var\PYGZus{}name}\PYG{p}{)}\PYG{o}{.}\PYG{n}{get\PYGZus{}values}\PYG{p}{()}\PYG{o}{.}\PYG{n}{to\PYGZus{}list}\PYG{p}{()}
+    \PYG{n}{columns} \PYG{o}{=} \PYG{n+nb}{list}\PYG{p}{(}\PYG{n+nb}{zip}\PYG{p}{(}\PYG{o}{*}\PYG{n}{values}\PYG{p}{))}
+
+    \PYG{c+c1}{\PYGZsh{} Build dictionary dynamically}
+    \PYG{n}{df\PYGZus{}dict} \PYG{o}{=} \PYG{p}{\PYGZob{}}
+        \PYG{l+s+s2}{\PYGZdq{}scenario\PYGZdq{}}\PYG{p}{:} \PYG{n}{columns}\PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{],}
+        \PYG{l+s+s2}{\PYGZdq{}product\PYGZdq{}}\PYG{p}{:} \PYG{n}{columns}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],}
+        \PYG{l+s+s2}{\PYGZdq{}week\PYGZdq{}}\PYG{p}{:} \PYG{n}{columns}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{],}
+        \PYG{l+s+s2}{\PYGZdq{}value\PYGZdq{}}\PYG{p}{:} \PYG{n}{columns}\PYG{p}{[}\PYG{l+m+mi}{3}\PYG{p}{],}
+        \PYG{l+s+s2}{\PYGZdq{}variable\PYGZdq{}}\PYG{p}{:} \PYG{n}{var\PYGZus{}name}
+    \PYG{p}{\PYGZcb{}}
+    \PYG{k}{return} \PYG{n}{pl}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}\PYG{n}{df\PYGZus{}dict}\PYG{p}{,} \PYG{n}{strict}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+
+
+\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{main}\PYG{p}{(}\PYG{n+nb}{eval}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{,} \PYG{n}{save}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{):}
+
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Initializing solver\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl} \PYG{o}{=} \PYG{n}{AMPL}\PYG{p}{()}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{setOption}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}solver\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}highs\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{path} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}steelT/steelT\PYGZdq{}}
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Reading data\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../models/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{path}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{c.mod\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read\PYGZus{}data}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../data/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{path}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{d.dat\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Running solution\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{solve}\PYG{p}{()}
+    \PYG{k}{if} \PYG{n+nb}{eval}\PYG{p}{:}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{eval}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}display Expected\PYGZus{}Profit;\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{eval}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}option display\PYGZus{}1col 0;\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{eval}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}display Make;\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{eval}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}display Sell;\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{c+c1}{\PYGZsh{} Convert variables into polars dataframes then combine them together}
+    \PYG{n}{df\PYGZus{}make} \PYG{o}{=} \PYG{n}{ampl\PYGZus{}var\PYGZus{}to\PYGZus{}df}\PYG{p}{(}\PYG{n}{ampl}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Make\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{df\PYGZus{}sell} \PYG{o}{=} \PYG{n}{ampl\PYGZus{}var\PYGZus{}to\PYGZus{}df}\PYG{p}{(}\PYG{n}{ampl}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Sell\PYGZdq{}}\PYG{p}{)}
+    \PYG{n}{df} \PYG{o}{=} \PYG{n}{pl}\PYG{o}{.}\PYG{n}{concat}\PYG{p}{([}\PYG{n}{df\PYGZus{}make}\PYG{p}{,} \PYG{n}{df\PYGZus{}sell}\PYG{p}{],} \PYG{n}{rechunk}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{)}
+    \PYG{c+c1}{\PYGZsh{} Pivot to a wider easier to use format}
+    \PYG{n}{df} \PYG{o}{=} \PYG{p}{(}
+        \PYG{n}{df}
+        \PYG{o}{.}\PYG{n}{pivot}\PYG{p}{(}
+            \PYG{n}{index}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}scenario\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}product\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}variable\PYGZdq{}}\PYG{p}{],}
+            \PYG{n}{on}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}week\PYGZdq{}}\PYG{p}{,}
+            \PYG{n}{values}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}value\PYGZdq{}}
+        \PYG{p}{)}
+        \PYG{o}{.}\PYG{n}{sort}\PYG{p}{([}\PYG{l+s+s2}{\PYGZdq{}scenario\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}product\PYGZdq{}}\PYG{p}{])}
+    \PYG{p}{)}
+
+    \PYG{k}{if} \PYG{n}{save}\PYG{p}{:}
+        \PYG{n}{df}\PYG{o}{.}\PYG{n}{write\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}../data/csv\PYGZhy{}files/partb\PYGZhy{}scenario\PYGZhy{}solutions.csv\PYGZdq{}}\PYG{p}{)}
+
+    \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{eval}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+s2}{    display \PYGZob{}s in 1..S\PYGZcb{}}
+\PYG{l+s+s2}{        sum \PYGZob{}p in PROD, t in 1..T\PYGZcb{} (revenue[p,t,s]*Sell[p,t,s] \PYGZhy{}}
+\PYG{l+s+s2}{            prodcost[p]*Make[p,t,s] \PYGZhy{} invcost[p]*Inv[p,t,s]);}
+\PYG{l+s+s2}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}\PYG{p}{)}
+
+\PYG{k}{if} \PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZdq{}}\PYG{p}{:}
+    \PYG{n}{main}\PYG{p}{(}\PYG{n+nb}{eval}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{save}\PYG{o}{=}\PYG{k+kc}{False}\PYG{p}{)}
+\end{Verbatim}

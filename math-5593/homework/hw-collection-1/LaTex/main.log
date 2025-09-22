@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.3.20)  20 SEP 2025 19:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024/Homebrew) (preloaded format=pdflatex 2024.3.20)  21 SEP 2025 19:43
 entering extended mode
  \write18 enabled.
  %&-line parsing enabled.
@@ -437,10 +437,14 @@ LaTeX Warning: Label `tab:<+label+>' multiply defined.
 
 LaTeX Warning: Label `tab:<+label+>' multiply defined.
 
+) (./1.7.aux
 
 LaTeX Warning: Label `tab:<+label+>' multiply defined.
 
-))
+
+LaTeX Warning: Label `tab:<+label+>' multiply defined.
+
+) (./appendix.aux))
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
@@ -539,15 +543,10 @@ File: ../images/hw4-part-e-run.png Graphic file (type png)
 <use ../images/hw4-part-e-run.png>
 Package pdftex.def Info: ../images/hw4-part-e-run.png  used on input line 209.
 (pdftex.def)             Requested size: 276.00105pt x 247.7875pt.
- [14 <../images/hw4-part-e-run.png>] (./latex_chunks/ampl-1-2.tex
-\openout3 = `main.pyg'.
-
- (./_minted-main/default.pygstyle)
-(./_minted-main/81B5333FBC7DF1C0161DAEF736643655541C68F80C6A6F06151AFD63BAE50EB
-C.pygtex [15]))) [16]
+) [14 <../images/hw4-part-e-run.png>]
 \openout2 = `1.5.aux'.
 
- (./1.5.tex [17
+ (./1.5.tex [15
 
 
 
@@ -555,21 +554,56 @@ C.pygtex [15]))) [16]
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[18] [19]
-<../images/profit-vs-reheat-1.png, id=83, 1033.8625pt x 571.13374pt>
+[16] [17]
+<../images/profit-vs-reheat-1.png, id=74, 1033.8625pt x 571.13374pt>
 File: ../images/profit-vs-reheat-1.png Graphic file (type png)
 <use ../images/profit-vs-reheat-1.png>
 Package pdftex.def Info: ../images/profit-vs-reheat-1.png  used on input line 1
 56.
 (pdftex.def)             Requested size: 276.00105pt x 152.46521pt.
- [20 <../images/profit-vs-reheat-1.png>]
-<../images/profit-vs-reheat-2.png, id=88, 1033.8625pt x 571.13374pt>
+ [18 <../images/profit-vs-reheat-1.png>]
+<../images/profit-vs-reheat-2.png, id=79, 1033.8625pt x 571.13374pt>
 File: ../images/profit-vs-reheat-2.png Graphic file (type png)
 <use ../images/profit-vs-reheat-2.png>
 Package pdftex.def Info: ../images/profit-vs-reheat-2.png  used on input line 1
 71.
 (pdftex.def)             Requested size: 276.00105pt x 152.46521pt.
- [21 <../images/profit-vs-reheat-2.png>] [22] (./latex_chunks/ampl-1-3a.tex
+ [19 <../images/profit-vs-reheat-2.png>]) [20]
+\openout2 = `1.6.aux'.
+
+ (./1.6.tex [21
+
+
+
+] [22] [23] [24] [25]) [26] [27]
+\openout2 = `1.7.aux'.
+
+ (./1.7.tex
+(./latex_chunks/steelTmod.tex [28
+
+
+
+]) (./latex_chunks/steelTdat.tex) [29]
+(./latex_chunks/4-5a-scenario-solutions.tex) [30]
+Overfull \hbox (14.559pt too wide) in paragraph at lines 84--85
+[]\OT1/cmtt/m/n/10 Total[]Profit \OT1/cmr/m/n/10 even changes here as we are no
+w op-ti-miz-ing for \OT1/cmtt/m/n/10 Expected[]Profit\OT1/cmr/m/n/10 .
+ []
+
+[31] [32] [33]) [34]
+\openout2 = `appendix.aux'.
+
+ (./appendix.tex (./latex_chunks/ampl-1-2.tex
+\openout3 = `main.pyg'.
+
+
+(./_minted-main/default.pygstyle)
+(./_minted-main/81B5333FBC7DF1C0161DAEF736643655541C68F80C6A6F06151AFD63BAE50EB
+C.pygtex [35
+
+
+
+])) [36] (./latex_chunks/ampl-1-3a.tex
 \openout3 = `main.pyg'.
 
 
@@ -579,21 +613,27 @@ C.pygtex)) (./latex_chunks/ampl-1-3c.tex
 
 
 (./_minted-main/74D5E3BCA8B80B29B59AB25A249C1B5F541C68F80C6A6F06151AFD63BAE50EB
-C.pygtex [23]))) [24]
-\openout2 = `1.6.aux'.
-
- (./1.6.tex [25
-
-
-
-] [26] [27] [28] [29] [30]
-(./latex_chunks/ampl-2-6.tex
+C.pygtex [37] [38])) [39] (./latex_chunks/ampl-4-5.tex
 \openout3 = `main.pyg'.
 
 
-(./_minted-main/4DE9CE83ABE1158FA8C9DE7A45829B49541C68F80C6A6F06151AFD63BAE50EB
-C.pygtex))) [31] (./main.aux (./1.2.aux) (./1.3.aux) (./1.4.aux) (./1.5.aux)
-(./1.6.aux))
+(./_minted-main/109927CAA5BE7ED18275FCED6BF6D393541C68F80C6A6F06151AFD63BAE50EB
+C.pygtex)) (./latex_chunks/ampl-4-5a.tex
+\openout3 = `main.pyg'.
+
+
+(./_minted-main/D8CAE4315689B8FFD43B54DEF2BD4EB4541C68F80C6A6F06151AFD63BAE50EB
+C.pygtex [40] [41])) (./latex_chunks/ampl-4-5b.tex
+\openout3 = `main.pyg'.
+
+
+(./_minted-main/691B3DF0B21CAA6149A09BC808B182A8541C68F80C6A6F06151AFD63BAE50EB
+C.pygtex [42] [43]))) [44]
+runsystem(rm _minted-main/4DE9CE83ABE1158FA8C9DE7A45829B49541C68F80C6A6F06151AF
+D63BAE50EBC.pygtex)...executed.
+
+ (./main.aux (./1.2.aux) (./1.3.aux) (./1.4.aux)
+(./1.5.aux) (./1.6.aux) (./1.7.aux) (./appendix.aux))
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
@@ -606,13 +646,13 @@ runsystem(rm main.pyg)...executed.
 
  ) 
 Here is how much of TeX's memory you used:
- 9244 strings out of 474116
- 162182 string characters out of 5733619
- 2134187 words of memory out of 5000000
- 31404 multiletter control sequences out of 15000+600000
+ 9368 strings out of 474116
+ 166134 string characters out of 5733619
+ 2223187 words of memory out of 5000000
+ 31494 multiletter control sequences out of 15000+600000
  567850 words of font info for 76 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 83i,14n,84p,754b,1760s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 83i,14n,84p,758b,1760s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </opt/homebrew/Cellar/texlive/20240312/share/texmf-dist/fonts/type1/public/am
 sfonts/cm/cmbx10.pfb></opt/homebrew/Cellar/texlive/20240312/share/texmf-dist/fo
 nts/type1/public/amsfonts/cm/cmbx12.pfb></opt/homebrew/Cellar/texlive/20240312/
@@ -633,10 +673,10 @@ pfb></opt/homebrew/Cellar/texlive/20240312/share/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmtt10.pfb></opt/homebrew/Cellar/texlive/20240312/share/texmf-dist/
 fonts/type1/public/amsfonts/cm/cmtt9.pfb></opt/homebrew/Cellar/texlive/20240312
 /share/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb>
-Output written on main.pdf (31 pages, 883602 bytes).
+Output written on main.pdf (44 pages, 915565 bytes).
 PDF statistics:
- 193 PDF objects out of 1000 (max. 8388607)
- 119 compressed objects within 2 object streams
+ 236 PDF objects out of 1000 (max. 8388607)
+ 149 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

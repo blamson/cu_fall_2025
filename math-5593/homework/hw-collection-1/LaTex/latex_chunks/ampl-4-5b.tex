@@ -1,0 +1,75 @@
+\begin{minted}[fontsize=\small,breaklines,linenos]{python}
+from amplpy import AMPL
+from loguru import logger
+import polars as pl
+
+
+def ampl_var_to_df(ampl, var_name: str) -> pl.DataFrame:
+    """
+    Goal here is to turn the clunky list aof tuples mpl provides and create a clean
+    usable dataframe
+
+    :param ampl: the ampl solver
+    :param var_name: the variable we want to make a dataframe of
+    :return: a dataframe
+    """
+    values = ampl.getVariable(var_name).get_values().to_list()
+    columns = list(zip(*values))
+
+    # Build dictionary dynamically
+    df_dict = {
+        "scenario": columns[2],
+        "product": columns[0],
+        "week": columns[1],
+        "value": columns[3],
+        "variable": var_name
+    }
+    return pl.DataFrame(df_dict, strict=False)
+
+
+def main(eval=False, save=False):
+
+    logger.info("Initializing solver")
+    ampl = AMPL()
+    ampl.setOption("solver", "highs")
+
+    path = "steelT/steelT"
+    logger.info("Reading data")
+    ampl.read(f"../models/{path}c.mod")
+    ampl.read_data(f"../data/{path}d.dat")
+
+    logger.info("Running solution")
+    ampl.solve()
+    if eval:
+        ampl.eval("display Expected_Profit;")
+        ampl.eval("option display_1col 0;")
+        ampl.eval("display Make;")
+        ampl.eval("display Sell;")
+
+    # Convert variables into polars dataframes then combine them together
+    df_make = ampl_var_to_df(ampl, "Make")
+    df_sell = ampl_var_to_df(ampl, "Sell")
+    df = pl.concat([df_make, df_sell], rechunk=True)
+    # Pivot to a wider easier to use format
+    df = (
+        df
+        .pivot(
+            index=["scenario", "product", "variable"],
+            on="week",
+            values="value"
+        )
+        .sort(["scenario", "product"])
+    )
+
+    if save:
+        df.write_csv("../data/csv-files/partb-scenario-solutions.csv")
+
+    ampl.eval("""
+    display {s in 1..S}
+        sum {p in PROD, t in 1..T} (revenue[p,t,s]*Sell[p,t,s] -
+            prodcost[p]*Make[p,t,s] - invcost[p]*Inv[p,t,s]);
+    """)
+
+if __name__ == "__main__":
+    main(eval=True, save=False)
+\end{minted}

@@ -129,7 +129,7 @@ As we can see there is now a set of widths which we use to provide context to th
 
 From there the provided model needs no modifications. All I do is remove the integer specification on \texttt{var CUT} so that we can get non-integer solutions. 
 
-\noindent\textbf{NOTE:} As with previous problems all related python scripts are provided in the appendix for this problem.
+\textbf{NOTE:} My basic python script for this part is provided in the HW6 appendix at the back of this collection.
 
 Below are the results from running the AMPL code \texttt{ampl.eval(''display Number, Cut;'')}.
 
@@ -297,11 +297,6 @@ we then just rerun the model and data files from the previous parts one last tim
 		\hline
 	\end{tabular}
 	\caption{Objective value comparison for each homework part.}
-	\label{tab:<+label+>}
 \end{table}
 
 Across the board we see a slight increase in rolls produced. This makes sense. A integer solution is inherently more restrictive so we have to make some concessions to accomodate that requirement.
-
-\subsection*{Homework 6 Appendix}
-
-\input{latex_chunks/ampl-2-6}

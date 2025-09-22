@@ -33,7 +33,6 @@ def main(reheat_hours_list):
         "time_dual_value": duals
     }, strict=False)
 
-    # Add difference column: current row minus previous row
     pl.Config.set_tbl_formatting("MARKDOWN")
 
     return df

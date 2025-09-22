@@ -1,0 +1,54 @@
+data;
+
+param T := 4;               # number of weeks
+param S := 3;               # number of scenarios
+
+set PROD := bands coils;
+
+param rate :=
+    bands 200
+    coils 140 ;
+
+param inv0 :=
+    bands  10
+    coils  0 ;
+
+param prodcost :=
+    bands 10
+    coils 11 ;
+
+param invcost  :=
+    bands  2.5
+    coils  3 ;
+
+# 1,2,3 here refer to scenarios.
+param prob :=
+    1 0.45
+    2 0.35
+    3 0.20 ;
+
+param avail :=
+    1 40
+    2 40
+    3 32
+    4 40 ;
+
+# This is adjusted now to accommodate the 3 scenarios.
+# We use [*,*,s] here to indicate which scenario these values belong to.
+# *,* means "all products, all weeks"
+param revenue :=
+[*,*,1]:        1     2     3     4 :=
+       bands    25    26    27    27
+       coils    30    35    37    39
+[*,*,2]:        1     2     3     4 :=
+       bands    23    24    25    25
+       coils    30    33    35    36
+[*,*,3]:        1     2     3     4 :=
+       bands    21    27    33    35
+       coils    30    32    33    33 ;
+
+# Same shift per week for market
+param market:    1     2     3     4 :=
+       bands  6000  6000  4000  6500
+       coils  4000  2500  3500  4200 ;
+;

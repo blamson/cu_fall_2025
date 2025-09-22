@@ -1,8 +1,8 @@
 \begin{Verbatim}[commandchars=\\\{\}]
-\PYG{k+kn}{from} \PYG{n+nn}{amplpy} \PYG{k+kn}{import} \PYG{n}{AMPL}
-\PYG{k+kn}{from} \PYG{n+nn}{loguru} \PYG{k+kn}{import} \PYG{n}{logger}
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{amplpy}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{AMPL}
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{loguru}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{logger}
 
-\PYG{k}{def} \PYG{n+nf}{main}\PYG{p}{():}
+\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{main}\PYG{p}{():}
     \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Initializing solver\PYGZdq{}}\PYG{p}{)}
     \PYG{n}{ampl} \PYG{o}{=} \PYG{n}{AMPL}\PYG{p}{()}
     \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{setOption}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}solver\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}highs\PYGZdq{}}\PYG{p}{)}

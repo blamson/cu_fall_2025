@@ -1,0 +1,86 @@
+from amplpy import AMPL
+from loguru import logger
+import polars as pl
+
+def ampl_entity_to_rows(entity, scenario, name):
+    """
+    Convert an AMPL entity (e.g. Make, Sell, Inv) into a list of dicts.
+    Adds scenario and variable name for context.
+    """
+    rows = []
+    for idx, row in enumerate(entity.getValues().toList()):
+        # row[0], row[1]... are indices, row[-1] is the value
+        # For Make/Sell/Inv the indices are (week, product)
+        product, week, val = row[0], row[1], row[2]
+
+        rows.append({
+            "scenario": scenario,
+            "week": int(week),
+            "product": product,
+            "variable": name,
+            "value": float(val)
+        })
+    return rows
+
+def main():
+    path = "steelT/steelT"
+    scenarios = [1, 2, 3]
+    save = False
+
+    all_rows = []
+    profit_list = []
+
+    for scenario in scenarios:
+        logger.info(f"Initializing solver for scenario {scenario}")
+        ampl = AMPL()
+        ampl.setOption("solver", "highs")
+
+        logger.info("Reading data")
+        ampl.read(f"../models/{path}.mod")
+        ampl.read_data(f"../data/{path}-scenario{scenario}.dat")
+
+        logger.info("Running solution")
+        ampl.solve()
+
+        profit = ampl.getObjective("Total_Profit").value()
+        profit_list.append(round(profit, 2))
+
+        # Grab variables
+        make = ampl.getVariable("Make")
+        sell = ampl.getVariable("Sell")
+
+        all_rows.extend(ampl_entity_to_rows(make, scenario, "Make"))
+        all_rows.extend(ampl_entity_to_rows(sell, scenario, "Sell"))
+
+    # Build into a Polars DataFrame
+    df = pl.DataFrame(all_rows)
+
+    df_wide = (
+        df
+        .filter(pl.col("week") != 0)
+        .pivot(
+            index=["scenario", "product", "variable"],
+            on="week",
+            values="value"
+        )
+        .sort(["scenario", "product"])
+    )
+
+    pl.Config.set_tbl_formatting("MARKDOWN")
+    with pl.Config(tbl_rows=78):
+        print(df_wide)
+
+    profit_df = pl.DataFrame(
+        {
+            "scenario": scenarios,
+            "total_profit": profit_list
+        }
+    )
+
+    print(profit_df)
+
+    if save:
+        df_wide.write_csv("../data/csv-files/scenario-solutions.csv")
+
+if __name__ == "__main__":
+    main()

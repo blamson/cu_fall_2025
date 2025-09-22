@@ -1,0 +1,89 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{amplpy}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{AMPL}
+\PYG{k+kn}{from}\PYG{+w}{ }\PYG{n+nn}{loguru}\PYG{+w}{ }\PYG{k+kn}{import} \PYG{n}{logger}
+\PYG{k+kn}{import}\PYG{+w}{ }\PYG{n+nn}{polars}\PYG{+w}{ }\PYG{k}{as}\PYG{+w}{ }\PYG{n+nn}{pl}
+
+\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{ampl\PYGZus{}entity\PYGZus{}to\PYGZus{}rows}\PYG{p}{(}\PYG{n}{entity}\PYG{p}{,} \PYG{n}{scenario}\PYG{p}{,} \PYG{n}{name}\PYG{p}{):}
+\PYG{+w}{    }\PYG{l+s+sd}{\PYGZdq{}\PYGZdq{}\PYGZdq{}}
+\PYG{l+s+sd}{    Convert an AMPL entity (e.g. Make, Sell, Inv) into a list of dicts.}
+\PYG{l+s+sd}{    Adds scenario and variable name for context.}
+\PYG{l+s+sd}{    \PYGZdq{}\PYGZdq{}\PYGZdq{}}
+    \PYG{n}{rows} \PYG{o}{=} \PYG{p}{[]}
+    \PYG{k}{for} \PYG{n}{idx}\PYG{p}{,} \PYG{n}{row} \PYG{o+ow}{in} \PYG{n+nb}{enumerate}\PYG{p}{(}\PYG{n}{entity}\PYG{o}{.}\PYG{n}{getValues}\PYG{p}{()}\PYG{o}{.}\PYG{n}{toList}\PYG{p}{()):}
+        \PYG{c+c1}{\PYGZsh{} row[0], row[1]... are indices, row[\PYGZhy{}1] is the value}
+        \PYG{c+c1}{\PYGZsh{} For Make/Sell/Inv the indices are (week, product)}
+        \PYG{n}{product}\PYG{p}{,} \PYG{n}{week}\PYG{p}{,} \PYG{n}{val} \PYG{o}{=} \PYG{n}{row}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{],} \PYG{n}{row}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{],} \PYG{n}{row}\PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{]}
+
+        \PYG{n}{rows}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(\PYGZob{}}
+            \PYG{l+s+s2}{\PYGZdq{}scenario\PYGZdq{}}\PYG{p}{:} \PYG{n}{scenario}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}week\PYGZdq{}}\PYG{p}{:} \PYG{n+nb}{int}\PYG{p}{(}\PYG{n}{week}\PYG{p}{),}
+            \PYG{l+s+s2}{\PYGZdq{}product\PYGZdq{}}\PYG{p}{:} \PYG{n}{product}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}variable\PYGZdq{}}\PYG{p}{:} \PYG{n}{name}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}value\PYGZdq{}}\PYG{p}{:} \PYG{n+nb}{float}\PYG{p}{(}\PYG{n}{val}\PYG{p}{)}
+        \PYG{p}{\PYGZcb{})}
+    \PYG{k}{return} \PYG{n}{rows}
+
+\PYG{k}{def}\PYG{+w}{ }\PYG{n+nf}{main}\PYG{p}{():}
+    \PYG{n}{path} \PYG{o}{=} \PYG{l+s+s2}{\PYGZdq{}steelT/steelT\PYGZdq{}}
+    \PYG{n}{scenarios} \PYG{o}{=} \PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{]}
+    \PYG{n}{save} \PYG{o}{=} \PYG{k+kc}{False}
+
+    \PYG{n}{all\PYGZus{}rows} \PYG{o}{=} \PYG{p}{[]}
+    \PYG{n}{profit\PYGZus{}list} \PYG{o}{=} \PYG{p}{[]}
+
+    \PYG{k}{for} \PYG{n}{scenario} \PYG{o+ow}{in} \PYG{n}{scenarios}\PYG{p}{:}
+        \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}Initializing solver for scenario }\PYG{l+s+si}{\PYGZob{}}\PYG{n}{scenario}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{ampl} \PYG{o}{=} \PYG{n}{AMPL}\PYG{p}{()}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{setOption}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}solver\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}highs\PYGZdq{}}\PYG{p}{)}
+
+        \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Reading data\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../models/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{path}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{.mod\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{read\PYGZus{}data}\PYG{p}{(}\PYG{l+s+sa}{f}\PYG{l+s+s2}{\PYGZdq{}../data/}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{path}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZhy{}scenario}\PYG{l+s+si}{\PYGZob{}}\PYG{n}{scenario}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{.dat\PYGZdq{}}\PYG{p}{)}
+
+        \PYG{n}{logger}\PYG{o}{.}\PYG{n}{info}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Running solution\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{solve}\PYG{p}{()}
+
+        \PYG{n}{profit} \PYG{o}{=} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getObjective}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Total\PYGZus{}Profit\PYGZdq{}}\PYG{p}{)}\PYG{o}{.}\PYG{n}{value}\PYG{p}{()}
+        \PYG{n}{profit\PYGZus{}list}\PYG{o}{.}\PYG{n}{append}\PYG{p}{(}\PYG{n+nb}{round}\PYG{p}{(}\PYG{n}{profit}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{))}
+
+        \PYG{c+c1}{\PYGZsh{} Grab variables}
+        \PYG{n}{make} \PYG{o}{=} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getVariable}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Make\PYGZdq{}}\PYG{p}{)}
+        \PYG{n}{sell} \PYG{o}{=} \PYG{n}{ampl}\PYG{o}{.}\PYG{n}{getVariable}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}Sell\PYGZdq{}}\PYG{p}{)}
+
+        \PYG{n}{all\PYGZus{}rows}\PYG{o}{.}\PYG{n}{extend}\PYG{p}{(}\PYG{n}{ampl\PYGZus{}entity\PYGZus{}to\PYGZus{}rows}\PYG{p}{(}\PYG{n}{make}\PYG{p}{,} \PYG{n}{scenario}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Make\PYGZdq{}}\PYG{p}{))}
+        \PYG{n}{all\PYGZus{}rows}\PYG{o}{.}\PYG{n}{extend}\PYG{p}{(}\PYG{n}{ampl\PYGZus{}entity\PYGZus{}to\PYGZus{}rows}\PYG{p}{(}\PYG{n}{sell}\PYG{p}{,} \PYG{n}{scenario}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}Sell\PYGZdq{}}\PYG{p}{))}
+
+    \PYG{c+c1}{\PYGZsh{} Build into a Polars DataFrame}
+    \PYG{n}{df} \PYG{o}{=} \PYG{n}{pl}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}\PYG{n}{all\PYGZus{}rows}\PYG{p}{)}
+
+    \PYG{n}{df\PYGZus{}wide} \PYG{o}{=} \PYG{p}{(}
+        \PYG{n}{df}
+        \PYG{o}{.}\PYG{n}{filter}\PYG{p}{(}\PYG{n}{pl}\PYG{o}{.}\PYG{n}{col}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}week\PYGZdq{}}\PYG{p}{)} \PYG{o}{!=} \PYG{l+m+mi}{0}\PYG{p}{)}
+        \PYG{o}{.}\PYG{n}{pivot}\PYG{p}{(}
+            \PYG{n}{index}\PYG{o}{=}\PYG{p}{[}\PYG{l+s+s2}{\PYGZdq{}scenario\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}product\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}variable\PYGZdq{}}\PYG{p}{],}
+            \PYG{n}{on}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}week\PYGZdq{}}\PYG{p}{,}
+            \PYG{n}{values}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}value\PYGZdq{}}
+        \PYG{p}{)}
+        \PYG{o}{.}\PYG{n}{sort}\PYG{p}{([}\PYG{l+s+s2}{\PYGZdq{}scenario\PYGZdq{}}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}product\PYGZdq{}}\PYG{p}{])}
+    \PYG{p}{)}
+
+    \PYG{n}{pl}\PYG{o}{.}\PYG{n}{Config}\PYG{o}{.}\PYG{n}{set\PYGZus{}tbl\PYGZus{}formatting}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}MARKDOWN\PYGZdq{}}\PYG{p}{)}
+    \PYG{k}{with} \PYG{n}{pl}\PYG{o}{.}\PYG{n}{Config}\PYG{p}{(}\PYG{n}{tbl\PYGZus{}rows}\PYG{o}{=}\PYG{l+m+mi}{78}\PYG{p}{):}
+        \PYG{n+nb}{print}\PYG{p}{(}\PYG{n}{df\PYGZus{}wide}\PYG{p}{)}
+
+    \PYG{n}{profit\PYGZus{}df} \PYG{o}{=} \PYG{n}{pl}\PYG{o}{.}\PYG{n}{DataFrame}\PYG{p}{(}
+        \PYG{p}{\PYGZob{}}
+            \PYG{l+s+s2}{\PYGZdq{}scenario\PYGZdq{}}\PYG{p}{:} \PYG{n}{scenarios}\PYG{p}{,}
+            \PYG{l+s+s2}{\PYGZdq{}total\PYGZus{}profit\PYGZdq{}}\PYG{p}{:} \PYG{n}{profit\PYGZus{}list}
+        \PYG{p}{\PYGZcb{}}
+    \PYG{p}{)}
+
+    \PYG{n+nb}{print}\PYG{p}{(}\PYG{n}{profit\PYGZus{}df}\PYG{p}{)}
+
+    \PYG{k}{if} \PYG{n}{save}\PYG{p}{:}
+        \PYG{n}{df\PYGZus{}wide}\PYG{o}{.}\PYG{n}{write\PYGZus{}csv}\PYG{p}{(}\PYG{l+s+s2}{\PYGZdq{}../data/csv\PYGZhy{}files/scenario\PYGZhy{}solutions.csv\PYGZdq{}}\PYG{p}{)}
+
+\PYG{k}{if} \PYG{n+nv+vm}{\PYGZus{}\PYGZus{}name\PYGZus{}\PYGZus{}} \PYG{o}{==} \PYG{l+s+s2}{\PYGZdq{}\PYGZus{}\PYGZus{}main\PYGZus{}\PYGZus{}\PYGZdq{}}\PYG{p}{:}
+    \PYG{n}{main}\PYG{p}{()}
+
+\end{Verbatim}

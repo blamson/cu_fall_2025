@@ -1,0 +1,234 @@
+\section*{Homework 7}
+
+Complete exercise 4-5 from the AMPL book.
+
+Multiperiod linear programs can be especially difficult to develop, because they require data pertaining to the future. To hedge against the uncertainty of the future, a user of these LPs typically develops various scenarios, containing different forecasts of certain key parameters. This exercise asks you to develop what is known as a stochastic program, which finds a solution that can be considered robust over all scenarios.
+
+\subsection*{Relevant Files:}
+
+The sample files for this problem come the \texttt{steelT} set of files. I will be using them as a base and modifying them. 
+
+\noindent\textbf{steelT.mod}
+
+\input{latex_chunks/steelTmod}
+
+\noindent\textbf{steelT.dat}
+
+\input{latex_chunks/steelTdat}
+
+\subsection*{A}
+
+\prob
+
+The revenues per ton might be particularly hard to predict, because they depend on fluctuating market conditions. Consider the three scenarios not included in this writeup.
+
+By solving the three associated linear programs, verify that each of these scenarios leads to a different optimal production and sales strategy, even for the first week.
+
+\sol
+
+Running the \texttt{steelT.mod} for each of the given scenarios provides us with the following total profits:
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		Scenario & Total Profit \\
+		\hline
+		1 & 515033.0 \\
+		2 & 462944.29 \\
+		3 & 549970.0 \\
+		\hline
+	\end{tabular}
+	\caption{Output of \texttt{display Total\_Profit} for the 3 scenarios.}
+	\label{tab:<+label+>}
+\end{table}
+
+And the following Make and Sell values.
+
+\input{latex_chunks/4-5a-scenario-solutions}
+
+We can see how much these strategies differ here, especially in week 1. Scenario 3 doesn't even bother making any bands in the first week! It's clear to see how a single more robust strategy would be valuable here. If any forecasts are off we could see drastic hits to profit due to how rigid these solutions are. Stepping away from purely optimal to pretty good overall in most situations would, in a real world scenario, likely end up making more profit overall!
+
+\subsection*{B}
+
+\prob
+
+The problem statement here is quite long and I will not be writing it out. Our first goal here is to take the first steps towards a stochastic program, organize our data in a different way and to show that the strategies we get for each scenario line up with what we got in part A. 
+
+\sol
+
+This problem required a ton of updates to make work. We'll start with the model file first. We take the advice of the problem statement (not shown here) and create a new parameter for the number of scenarios. Alongside this we make sure to update the relevant parameters and constraints. We only need to update the things actually affected by the scenarios. So anything where revenue plays a part.
+
+We also add in a new probability parameter that will allow us to later specify how likely certain scenarios are.
+
+First, the parameters.
+
+\begin{lstlisting}
+param S > 0; # number of scenarios
+param revenue {PROD, 1..T, 1..S} >= 0;
+param prob {1..S} >=0, <= 1;
+    check: 0.99999 < sum {s in 1..S} prob[s] < 1.00001;
+\end{lstlisting}
+
+Then the variables.
+
+\begin{lstlisting}
+# Variables ---
+var Make {PROD,1..T,1..S} >= 0;      # tons produced
+var Inv {PROD,0..T,1..S} >= 0;       # tons inventoried
+var Sell {p in PROD, t in 1..T, s in 1..S} >= 0, <= market[p,t];
+\end{lstlisting}
+
+And lastly, the constraints. This one is important as we have an additional layer of summing now with the various scenarios.
+
+\texttt{Total\_Profit} even changes here as we are now optimizing for \texttt{Expected\_Profit}. Since the scenarios chosen are random we can now use the definition of the expected value. We can think of this new objective function as:
+
+\[
+    E[\text{profit}] = \sum_{s \in S} \text{Prob}(s) \cdot \text{Profit}(s)
+\]
+
+\begin{lstlisting}
+    # Constraints ---
+maximize Expected_Profit:
+    sum {s in 1..S} prob[s] *
+        sum {p in PROD, t in 1..T} (revenue[p,t,s] * Sell[p,t,s]
+            - prodcost[p]*Make[p,t,s]
+            - invcost[p]*Inv[p,t,s]);
+
+               # Total revenue less costs in all weeks
+
+subject to Time {t in 1..T, s in 1..S}:
+   sum {p in PROD} (1/rate[p]) * Make[p,t,s] <= avail[t];
+
+               # Total of hours used by all products
+               # may not exceed hours available, in each week
+
+subject to Init_Inv {p in PROD, s in 1..S}:
+        Inv[p,0,s] = inv0[p];
+
+               # Initial inventory must equal given value
+
+subject to Balance {p in PROD, t in 1..T, s in 1..S}:
+   Make[p,t,s] + Inv[p,t-1,s] = Sell[p,t,s] + Inv[p,t,s];
+\end{lstlisting}
+
+We aren't done yet. We also need to modify the data file. Here we add in our new paramteres, \texttt{S} and \texttt{prob}. We also update our revenue table to handle all the different scenarios!
+
+\begin{lstlisting}
+data;
+
+param S := 3; # Number of scenarios
+
+# 1,2,3 here refer to scenarios.
+param prob :=
+    1 0.45
+    2 0.35
+    3 0.20 ;
+
+# This is adjusted now to accommodate the 3 scenarios.
+# We use [*,*,s] here to indicate which scenario these values belong to.
+param revenue :=
+[*,*,1]:        1     2     3     4 :=
+       bands    25    26    27    27
+       coils    30    35    37    39
+[*,*,2]:        1     2     3     4 :=
+       bands    23    24    25    25
+       coils    30    33    35    36
+[*,*,3]:        1     2     3     4 :=
+       bands    21    27    33    35
+       coils    30    32    33    33 ;
+\end{lstlisting}
+
+From here, it's as simple as running the new model and data.
+
+\noindent\textbf{Expected Profit:} 503789
+
+I will not be providing the Make and Sell table here as it is the exact same as part A. I know I'm supposed to verify that this is the case but I don't think taking up another third of a page for an identical table is really necessary here.
+
+Looking back at the scenario profits from part A, we had about 515k, 463k and 550k for scenarios 1 2 and 3 respectively. We can see that our expected value is only really above scenario 2s profits. Why is that?
+
+We can actually check why with a simple computation. We have the probabilities we assigned, the original profits of each scenario and our simple expected value formula. 
+
+\begin{align*}
+	E[X] &= \sum_{x \in X} p(x) \cdot x \\
+	E[\text{profit}] &= \sum_{s \in S} p(s) \cdot \text{profit}_s \\
+	&\approx (0.45 \cdot 515033) + (0.35 \cdot 462944) + (0.20 \cdot 549970) \\
+	&= 503789
+\end{align*}
+
+We can see from this that our highest profit scenario has the lowest probability given to it. Meanwhile our lowest profit scenario is the second most likely by a large margin. Thus, scenario 2 is able to drag the expected profit down.
+
+\subsection*{C}
+
+\prob
+
+Add nonanticipativity constraints to the model and then verify that there is a consistent week 1 strategy across all 3 scenarios.
+
+\sol
+
+To do this we add these simple constraints to our model.
+
+\begin{lstlisting}
+    # non-anticipativity constraints
+
+subject to Make_na {p in PROD, s in 1..S-1}:
+    Make[p,1,s] = Make[p,1,s+1];
+
+subject to Inv_na {p in PROD, s in 1..S-1}:
+    Inv[p,1,s] = Inv[p,1,s+1];
+
+subject to Sell_na {p in PROD, s in 1..S-1}:
+    Sell[p,1,s] = Sell[p,1,s+1];
+\end{lstlisting}
+
+Rerunning everything with these intact gives us the following week 1 values.
+
+\begin{table}[ht!]
+	\centering
+	\begin{tabular}{|c|c|ccc|}
+		\hline
+		Variable & Product & Scenario 1  & Scenario 2 & Scenario 3 \\
+		\hline
+		Make & Bands & 5990 & 5990 & 5990 \\
+		Make & Coils & 1407 & 1407 & 1407 \\
+		Sell & Bands & 6000 & 6000 & 6000 \\
+		Sell & Coils & 1407 & 1407 & 1407 \\
+		\hline
+	\end{tabular}
+	\caption{Week 1 Values Across Scenarios}
+\end{table}
+
+Not shown in this table is the deviation that begins immediately after week 1. But this shows that those simple modifications were all that were necessary to create a consistent week 1 strategy.
+
+\subsection*{D}
+
+\prob
+
+Use the provided code to get the profits per scenario. Which scenario is most profitable, and which will be least profitable? Repeat the analysis using probabilities $0.0001, 0.0001, 0.9998$ for scenarios 1, 2 and 3. You should find that profit from strategy 3 goes up, but profits from the other two go down. Explain what these profits represent, and why the results are what you would expect.
+
+\sol
+
+To start, we add the following code to our script wrapped in a \texttt{ampl.eval()}.
+
+\begin{lstlisting}
+display {s in 1..S}
+    sum {p in PROD, t in 1..T} (revenue[p,t,s]*Sell[p,t,s] -
+        prodcost[p]*Make[p,t,s] - invcost[p]*Inv[p,t,s]);
+\end{lstlisting}
+
+And then we simply run the code. After capturing the results we modify the probabilities as told and capture those results.
+
+\begin{table}[!ht]
+	\centering
+	\begin{tabular}{|c|ccc|}
+		\hline
+		Trial & Scenario 1 Profit & Scenario 2 Profit & Scenario 3 Profit \\
+		1 & 514090 & 461833 & 538793 \\
+		2 & 504493 & 459644 & 549970 \\
+		\hline
+	\end{tabular}
+	\caption{Trial 1, default probabilities. Trial 2, modified probabilities.}
+	\label{tab:<+label+>}
+\end{table}
+
+We do get the results we anticipated, an increase in profit for only scenario 3 and a drop for the other 2 scenarios. This makes sense if we remember what we added in part c. Part c is what forces a consistent week 1 strategy across all the scenarios. In part c this strategy takes all three scenarios into account, albeit unevenly. However here the week 1 strategy may as well be entirely informed by what optimizes scenario 3. They end up using the same strategy that doesn't work for them as well, causing their profits to drop slightly.
