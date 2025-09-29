@@ -1,0 +1,25 @@
+node Day {t in DAYS};
+node Trash;
+node Stock: net_out = initial_stock;
+node Store;
+node DemandSink; # 
+
+minimize Total_Cost;
+
+arc InitialNapkins >= 0,
+    from Stock, to Day[1], obj Total_Cost 0;
+
+arc Buy {t in DAYS} >= 0,
+    from Store, to Day[t], obj Total_Cost napkin_price;
+
+arc Carry {t in 1..T-1} >= 0,
+    from Day[t], to Day[t + 1], obj Total_Cost 0;
+
+arc FastLaundry {t in 1..T-2} >= 0,
+    from Day[t], to Day[t+2], obj Total_Cost wash2_price;
+
+arc SlowLaundry {t in 1..T-4} >= 0,
+    from Day[t], to Day[t+4], obj Total_Cost wash4_price;
+
+arc TrashFlow {t in DAYS} >= 0,
+    from Day[t], to Trash, obj Total_Cost 0;

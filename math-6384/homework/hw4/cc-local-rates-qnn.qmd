@@ -1,0 +1,295 @@
+---
+title: "Case-Control Point Data Homework (Local Rates and Nearest Neighbors)"
+format: html
+self-contained: true
+author: Brady Lamson
+date: 9/24/2025
+---
+```{r, message=FALSE, results=FALSE, warning=FALSE, echo=FALSE}
+packages <- c("spatstat", "pbapply", "smacpod")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# options(scipen=9999)
+```
+
+Instructions:  Answer the following questions and write your answers in a word processor.  Mathematical symbols should be written using the equation editor.  Appropriate graphics should be included.  The document may also be created in LaTeX, though this is NOT encouraged.
+
+# Problem 1 
+
+The `urkiola` data set in the **spatstat package** contains locations of birch (Betula celtiberica) and oak (Quercus robur) trees in a secondary wood in Urkiola Natural Park (Basque country, northern Spain). They are part of a more extensive dataset collected and analysed by Laskurain (2008). The coordinates of the trees are given in meters.  Let the “oak” trees be the cases and “birch” trees be the controls.
+
+```{r}
+trees <- spatstat.data::urkiola
+```
+
+## a.
+
+Perform a test to determine whether the most unusual window of case/control event locations in the study area can be considered a cluster using the spatial scan statistic under the random labeling hypothesis.  Use $n_{sim}=199$ randomly labeled data sets and $\alpha=0.10$.  Make sure to clearly describe your null and alternative hypotheses. Make your conclusion in the context of the problem.
+
+**Solution:**
+
+```{r}
+scan = spscan.test(trees, nsim = 199, alpha = 0.10, case = "oak", cl=4)
+summary(scan)
+```
+
+$H_0$: There are no windows where the most likely cluster is more unusual than what is expected under the random labeling hypothesis.
+
+$H_a$: There is at least one window where the most likely cluster is more unusual than what is expected under the random labeling hypothesis.
+
+These results indicate that there is significant evidence at the $\alpha=0.10$ level to conclude that there is at least one window in the study area where we observed more oak trees than we would expect to under the null hypothesis. In other words, we may reject the null hypothesis that the distribution of oak and birch trees in Urkiola Natural Park can be explained entirely by the random labeling of these trees. 
+
+## b.
+
+Using your analysis from the previous problem, create a plot of the case/control event locations, the associated study area boundary, and a legend indicating the cases/controls.  Add the window identifying the most unusual window of case/control event locations (according to the spatial scan statistic) and any potential secondary clusters.  Comment on the results.
+
+```{r}
+plot(scan, border="orange", chars = c(1, 20), cols=c("blue", "darkgreen"))
+```
+
+What really stands out to me is the size of this cluster. This is interesting to me because oak trees only make up about $29\%$ of this dataset yet the cluster is the bulk of the study area. I would have expected a cluster of oaks to be smaller I suppose. Except, looking at the summary output again we have $313/875 \approx 35.8\%$ as the proportion of cases to events for that area. I suppose that's a substantial enough difference from the overall proportion to qualify this as a cluster. 
+
+Below shows the overall proportions for context.
+
+```{r}
+tree_sum <- summary(trees)
+tree_sum$marks
+```
+
+
+## c.
+
+Perform a test for clustering using the q nearest neighbors method.  Use $q=3,5,\ldots,19$ and $n_{sim}=499$ randomly labeled data sets.  For which $q$ are there more cases than we would expect under random labeling in the $q$ locations nearest each case?  At what scale does this clustering appear to occur (use the contrasts)?
+
+```{r}
+qnn.test(trees,
+         q = seq(3, 19, 2),
+         nsim = 499,
+         case = "oak")
+```
+
+All of the values of $q$ here show significant evidence of clustering under the random labeling hypothesis. It is interesting to note that the p-values are all $0.002 = 1/500$, indicating that none of the generated simulations showed results as extreme as our observed data for any of the values of $q$. This is a limitation of the number of simulations more than anything, more simulations would allow for a smaller possible p-value. I bring this up as in normal scenarios p-value equality such as this would be cause for some concern. 
+
+Turning to the contrasts, if we move from $T5-T3, T7-T5, T9-T7,...$ and so on we continue to see each additional scale provide significant information all the way up to $T17$ at the $\alpha=0.10$ level (results from $T17-T15$). From this we can conclude that this clustering expands all of the way out to the $q=17$ scale, and that any of the clustering we see in $T19$ can be explained by $T17$. 
+
+# Problem 2
+
+Answer the same questions as Problem 1 for the `paracou` data set in the **spatstat** package.  Let the `juveniles` be the controls and `adults` be the cases.  
+
+```{r}
+trees_BUT_DIFFERENT <- spatstat.data::paracou
+```
+
+
+## a.
+
+Perform a test to determine whether the most unusual window of case/control event locations in the study area can be considered a cluster using the spatial scan statistic under the random labeling hypothesis.  Use $n_{sim}=199$ randomly labeled data sets and $\alpha=0.10$.  Make sure to clearly describe your null and alternative hypotheses. Make your conclusion in the context of the problem.
+
+```{r}
+scan = spscan.test(trees_BUT_DIFFERENT, nsim = 199, alpha = 0.10, case = "adult", cl=4)
+summary(scan)
+```
+
+$H_0$: There are no windows where the most likely cluster is more unusual than what is expected under the random labeling hypothesis.
+
+$H_a$: There is at least one window where the most likely cluster is more unusual than what is expected under the random labeling hypothesis.
+
+From these results, there is not significant evidence at the $\alpha=0.10$ level to indicate that the spatial distribution of adult kimboto trees in Paracou relative to the Juvenile trees is unusual compared to what we would expect under the random labeling hypothesis. 
+
+## b.
+
+Using your analysis from the previous problem, create a plot of the case/control event locations, the associated study area boundary, and a legend indicating the cases/controls.  Add the window identifying the most unusual collection of case/control event locations (according to the spatial scan statistic) and any potential secondary clusters.  Comment on the results.
+
+```{r}
+plot(scan, border="orange", chars = c(1, 20), cols=c("blue", "darkgreen"))
+```
+
+Looking at the plot here and the lack of adult clustering evidence makes sense. I believe I pointed this out in the previous homework but this pattern here appears more regular than anything. Like all of the adults have enough space from eachother to spread deep roots and thrive. The most likely cluster here is just nestled in the bottom left, in one of the few small gaps without many juvenile trees. It doesn't appear particularly convincing. 
+
+Of note that the test in part a tests for clustering of **adults** relative to juveniles. So this doesn't rule out the possibility of clustering of juveniles which does still appear to have a pattern. This makes sense as multiple juvenile trees will be created around one another but not all will survive to adulthood. 
+
+## c.
+
+Perform a test for clustering using the q nearest neighbors method.  Use $q=3,5,\ldots,19$ and $n_{sim}=499$ randomly labeled data sets.  For which $q$ are there more cases than we would expect under random labeling in the q locations nearest each case?  At what scale does this clustering appear to occur (use the contrasts)?
+
+```{r}
+qnn.test(trees_BUT_DIFFERENT,
+         q = seq(3, 19, 2),
+         nsim = 499,
+         case = "adult")
+```
+
+None of the scales here show any significant evidence of clustering under the random labeling hypothesis. Thus we can draw the same conclusions as we did in part a, that the patterns we're seeing for adult kimboto trees aren't unusual compared to what we would see under the RLH. This conclusion is, of course, restricted to the range of $q$ values tested. 
+
+# Problem 3
+
+Write your own function from scratch to implement the q nearest neighbors method, including performing a Monte Carlo simulation to assess significance of your rests.  You may not use any functions from the **spatstat** or **smacpod** packages.
+
+## a.
+
+Create a function, `W`, that takes the event locations and `q`, the number of nearest neighbors, and returns the `W` matrix discussed in the notes.  Apply this function to the `paracou` data with `q = 3`, then use the `image` function to plot the `W` matrix.  Make sure to include your code here.
+
+**Solution:**
+
+Our goal here is that we want $W$.
+
+$$
+W_{i,j} = \begin{cases}
+    1 & \text{if location } j \; \text{is among the } q \; \text{nearest neighbors of location } i \\
+    0 & \text{otherwise.}
+\end{cases}
+$$
+
+I will be heavily and shamelessly borrowing from the source code of `qnn.test` for this entire series of problems. Thanks to whoever the author of the `smacpod` package, whoever that may be. 
+
+We'll be using the `smerc` package here but that one isn't prohibited. How convenient. It's almost as if all of this was planned from the start.
+
+Of note that the `qnn.test` code is generalized to arbitrarily many values of $q$. So we'll need to adjust some things. 
+
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+W <- function(x, q=3, casename) {
+    # We'd normally do value checks here but let's assume our user is not malicious
+    
+    # Identify cases
+    idxcase = which(x$marks == casename)
+    
+    # Basic variable stuff ---
+    N = x$n
+    N1 = length(idxcase)
+    
+    # Return symmetric 884x884 matrix of distances
+    D <- smerc::gedist(cbind(x$x, x$y))
+    diag(D) <- Inf # This is set so that the self cannot be a nearest neighbor
+    
+    # This guy is our key basically. It allows us to identify the nearest neighbors of a given tree
+    # odistq is a Nxq matrix where the row is a tree and the q columns are its q nearest neighbors 
+    odistq = t(apply(D, 1, order)[1:q, ])
+    
+    Wq = matrix(0, nrow = N, ncol = N)
+    for (j in 1:N) {
+        nn = odistq[j, 1:q] # Identify the q nearest neighbors of a given tree
+        Wq[j, nn] = 1       # Go to the row for that tree, and assign those nn indices to 1
+    }
+    
+    return(Wq)
+}
+```
+
+And just to check that it works.
+
+```{r}
+Wq <- W(x=trees_BUT_DIFFERENT, q=3, casename = "adult")
+
+# Each row should have 3 nearest neighbors identified...
+sum(Wq[500,])
+```
+
+Bingo.
+
+```{r}
+image(Wq)
+```
+
+
+## b.
+
+Determine the $\delta$ vector discussed in the notes for the `paracou` data, using the adults as cases.  Use the formula $\delta^T W \delta$ to determine $T_q$ for $q=3$.
+
+The $\delta$ vector, to my understanding, is a boolean vector of marks where the value is a 1 if the mark is a case (adult) and a 0 if not. 
+
+```{r}
+delta <- as.integer(trees_BUT_DIFFERENT$marks == "adult")
+Tq <- t(delta) %*% Wq %*% delta
+cat("Tq: ", Tq[1,1])
+```
+
+So our observed $T_3 = 9$. I checked this against the output of `qnn.test` for $q=3$ myself and got the same test statistic. So that's a good sign! 
+
+## c.
+
+Generate 499 data sets under the random labeling hypothesis for the `paracou` data, using the adults as cases.  Determine $T_q$ for each simulated data set for $q=3$.  Compute the sample mean and variance for the statistics coming from the NULL data (do not include the observed statistic).  Compute the Monte Carlo p-value for this test using the observed statistics and the 499 statistics from the simulated data. Make sure to provide your code and clearly indicate the sample mean, sample variance, and Monte Carlo p-value.
+
+**Solution:**
+
+Back to shamelessly stealing more code!
+
+The function I wrote in part a is kind of... useless here. It's designed for the original dataset, not simulations. We gotta do some work to make this happen. It's all good though! This solution is very slow but it's okay. 
+
+
+```{r, warning=FALSE}
+#| code-fold: true
+#| code-summary: The code
+
+set.seed(500)
+# Re assign some variables that are in the function from A
+nsim <- 499
+q <- 3
+idxcase = which(trees_BUT_DIFFERENT$marks == "adult")
+N1 <- length(idxcase)
+N <- trees_BUT_DIFFERENT$n
+
+# Create (nsim x case_count) 0 matrix
+rcases = matrix(0, ncol = N1, nrow = nsim)
+
+# Randomly assign the cases to 1 of the N observations
+# Each row represents a simulation and each column an index randomly labeled as a case
+for (i in 1:nsim) rcases[i, ] = sample(1:N, N1) 
+
+# Uses the random labeling from rcases and creates a n X nsim matrix
+# of 0s and 1s. Each column is a simulation and the rows identify which trees
+# for that simulation are adults and which are juveniles
+Delta = matrix(0, nrow = N, ncol = nsim)
+for (i in 1:nsim) Delta[rcases[i, ], i] <- 1
+
+tsimvec <- c()
+
+for (i in 1:nsim) {
+    
+    if (i %% 100 == 0) {
+        cat("Iteration", i, "out of", nsim, "\n")
+    }
+    
+    # organize the simulation as a dataframe so it plays nice w/ W() function
+    sim_df <- data.frame(
+        x = trees_BUT_DIFFERENT$x,
+        y = trees_BUT_DIFFERENT$y,
+        marks = ifelse(Delta[, i] == 1, "adult", "juvenile"),
+        n = trees_BUT_DIFFERENT$n # Bit hacky but it works!
+    )
+    wsim <- W(sim_df, casename = "adult")
+    tqsim <- t(Delta[, i]) %*% wsim %*% Delta[, i]
+    tsimvec[i] <- tqsim
+}
+```
+
+```{r}
+avg <- mean(tsimvec)
+sigmasq <- var(tsimvec)
+p <- mean(tsimvec >= Tq[1,1])
+cat("Simulation Tq Mean:", avg, "\nSimulation Tq Variance:", sigmasq, "\nMonte Carlo p-value:", p)
+```
+
+And just a simple density plot with a line for our observed Tq statistic for reference. More of a sanity check than anything.
+
+```{r, echo=FALSE}
+plot(density(tsimvec))
+abline(v=Tq[1,1], col="red")
+```
+
+
+# Problem 4
+
+Describe how the set of windows considered for the spatial scan method are constructed. More specifically, consider a specific event location. What would the first window be? What would the next window be for that even location? And so on.
+
+**Solution:**
+
+First we start with some specific event location. We expand a circle outward from that point with the radius increasing until we hit the next observation. That is our first window, the smallest circle that contains the original point and its nearest neighbor. Then we expand out further until we hit the next observation. That is another window. To be specific, each window adds the next closest observation to the original point. We continue to do this until we hit some specified upper limit on the radius or on the proportion of the population. This decision is made by the analyst themselves. Each one of these windows is a candidate cluster, which can result in a ton of potential clusters for large datasets. 

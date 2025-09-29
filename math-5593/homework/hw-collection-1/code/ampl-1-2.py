@@ -8,16 +8,16 @@ def main():
 
     file_name = "steel4"
     logger.info("Reading data")
-    ampl.read(f"../models/{file_name}.mod")
-    ampl.read_data(f"../data/{file_name}e.dat")
+    ampl.read(f"../models/steel/{file_name}c.mod")
+    ampl.read_data(f"../data/steel/{file_name}b.dat")
 
     logger.info("Running solution")
     ampl.solve()
 
     logger.info("Printing Results")
 
-    total_profit = round(ampl.getObjective("Total_Profit").value(),2)
-    print("\nTotal Profit:", total_profit)
+    total_profit = round(ampl.getObjective("Total_Weight").value(),2)
+    print("\nTotal Weight:", total_profit)
 
     make_vals = {
         product: value
