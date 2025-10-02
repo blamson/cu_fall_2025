@@ -1,0 +1,342 @@
+---
+title: "Hw05 - Regional Count Data Homework (Local Rates)"
+format: html
+author: "Brady Lamson"
+date: "10/2/2025"
+self-contained: TRUE
+---
+
+```{r, message=FALSE, results=FALSE, warning=FALSE, echo=FALSE}
+packages <- c("spatstat", "pbapply", "smacpod", "RColorBrewer")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# options(scipen=9999)
+```
+
+The `scotlip_sf` is an `sf` data frame with 56 rows representing counties and 5 variables. The data frame contains 56 county-level observations for lip cancer among males in Scotland between 1975-1980. The variables are:
+
+- `name`: county name
+- `cancer`: number of Lip cancer cases in the county (Cressie 1993)
+- `population`: county population size (Cressie 1993)
+- `expected`: expected number of lip cancer cases (Lawson 1999)
+- `geometry`: geometric representation of counties in Scotland.
+
+Source
+Kemp I., Boyle P., Smans M. and Muir C. (1985) Atlas of cancer in Scotland, 1975-1980, incidence and epidemiologic perspective. *International Agency for Research on Cancer*. 72
+
+Cressie, N. A. C. (1993). Statistics for Spatial Data. New York: John Wiley & Sons, p. 537 Table 7.2.
+
+Lawson, A., Biggeri, A., Böhning, D., Lesaffre, E., Viel, J. F., & Bertollini, R. (Eds.). (1999). Disease Mapping and Risk Assessment for Public Health. New York: Wiley, pp. 68-69, Table 5.1.
+
+We run the following command to load `scotlip_sf` (assuming the `.rda` is in your search path).
+
+```{r}
+load("scotlip_sf.rda")
+```
+
+We run the following command to geometrically obtain centroids for each county.
+
+```{r}
+#| include: false
+library(smerc)
+library(sf)
+```
+
+```{r}
+coords <- st_coordinates(st_centroid(st_geometry(scotlip_sf)))
+```
+
+# Problem 1 
+
+Create choropleth maps (a plot that colors each region with a value indicating the response level) of the `cases` and `expected` variables.
+
+**Solution**
+
+```{r}
+cancer <- scotlip_sf[, c("cancer", "geometry")]
+plot(cancer, pal = hcl.colors)
+
+expected <- scotlip_sf[, c("expected", "geometry")]
+plot(expected, pal = hcl.colors)
+```
+
+
+# Problem 2
+
+Based on the observed and expected patterns in the plots, what do you conclude about possible clusters of lip cancer cases in Scotland?
+
+**Solution**
+
+There's definitely something going on in the top right of scotland. I wish I had an easier way of telling the names of these counties but its okay. When we're comparing to expected behavior specifically, we need to be careful as both of these plots are on different scales. When taking that into consideration, we see values well beyond the expected in the top right. This means there may be some clustering of lip cancer cases going on there. We see possible clusters in the bottom middle, but those don't seem *that* different from the expected values. If anything, they're lower than expected! 
+
+# Problem 3	
+
+In this problem, we will use the CEPP method to identify potential clusters of the `cancer` variable using a significance level of $\alpha=0.01$.
+
+## (a)
+
+State the null and alternative hypothesis test in the context of the problem for a generic $n^*$.
+
+**Solution**
+
+$H_0:$ There is no window with $n^*$ persons with lip cancer that has significantly more cases than what is expected under the constant risk hypothesis.
+
+$H_a:$ There is at least one window with $n^*$ persons with lip cancer that has significantly more cases than what is expected under the constant risk hypothesis.
+
+## (b) 
+
+Apply the CEPP test to the `cancer` variable using $n^*=150,000$, $n^*=750,000$, and $n^*=1,500,000$ (approximately 1%, 5%, and 10% of the total population)
+
+**Solution**
+
+### 150k
+
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+cepp150k = cepp.test(coords = coords,
+                     cases = scotlip_sf$cancer,
+                     pop = scotlip_sf$population,
+                     nstar = 150000,
+                     alpha = 0.01)
+# basic info
+cepp150k
+# cluster info
+summary(cepp150k)
+clusters(cepp150k)
+```
+
+### 750k
+
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+cepp750k = cepp.test(coords = coords,
+                     cases = scotlip_sf$cancer,
+                     pop = scotlip_sf$population,
+                     nstar = 750000,
+                     alpha = 0.01)
+# basic info
+cepp750k
+# cluster info
+summary(cepp750k)
+clusters(cepp750k)
+```
+
+### 1500k
+
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+cepp1500k = cepp.test(coords = coords,
+                     cases = scotlip_sf$cancer,
+                     pop = scotlip_sf$population,
+                     nstar = 1500000,
+                     alpha = 0.01)
+# basic info
+cepp1500k
+# cluster info
+summary(cepp1500k)
+clusters(cepp1500k)
+```
+
+## (c)
+
+Interpret the overall results from the tests in (b) in the context of the problem.  
+
+**Solution**
+
+As we fix the required population higher and higher we continue to see significant evidence of clustering compared to what we would expect under the constant risk hypothesis. For the three tests, there is at least one window with $n^{150k}$, $n^{750k}$ and $n^{1500k}$ persons with lip cancer that has significantly more cases than what is expected under the constant risk hypothesis. Of note that as $n^*$ increases we see the number of possible clusters decrease and the number of regions in the possible clusters increase. 
+
+## (d)
+
+Plot the results on the map of Scotland counties.  Look at the overarching patterns of the plots.  Are the clusters in roughly the same areas?  Explain.
+
+**Solution**
+
+```{r}
+plot(sf::st_geometry(scotlip_sf), border = "grey60", axes = TRUE,
+     col = color.clusters(cepp150k))
+legend("topright", legend = c("n* = 150k"))
+
+plot(sf::st_geometry(scotlip_sf), border = "grey60", axes = TRUE,
+     col = color.clusters(cepp750k))
+legend("topright", legend = c("n* = 750k"))
+
+plot(sf::st_geometry(scotlip_sf), border = "grey60", axes = TRUE,
+     col = color.clusters(cepp1500k))
+legend("topright", legend = c("n* = 1500k"))
+```
+
+The clusters are *roughly* in the same place, but some regions are omitted/included as $n^*$ changes. For example, $150k$ includes a large region in the north that $750k$ doesn't. $750k$ includes a lot more of the center and southwest regions. $1500k$ includes the island to the west. Overall though these regions are mostly consistent.
+
+# Problem 4
+
+In this problem, we will use the CEPP method to identify potential clusters of the `cancer` variable using a significance level of $\alpha=0.01$.
+
+**I'm guessing this is a typo and this is actually the Besag-Newell test.**
+
+## (a)
+State the null and alternative hypothesis test in the context of the problem for a generic $c^*$.
+
+**Solution**
+
+$H_0:$ The most compact window (in terms of population size) with at least $c^*$ cases of lip cancer is not significantly more compact than what is expected under the constant risk hypothesis.
+
+$H_a:$ The most compact window (in terms of population size) with at least $c^*$ cases of lip cancer is significantly more compact than what is expected under the constant risk hypothesis.
+
+## (b) 
+
+Apply the Besag-Newell test to the `cancer` variable using $c^*=6$, $c^*=27$, and $c^*=54$ (approximately 1%, 5%, and 10% of the total lip cancer cases).
+
+### $c^* = 6$
+
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+bn6 = bn.test(coords = coords,
+              cases = scotlip_sf$cancer,
+              pop = scotlip_sf$population,
+              cstar = 6,
+              alpha = 0.01)
+bn6 # simple info
+summary(bn6) # cluster info
+clusters(bn6)
+```
+
+### $c^* = 27$
+
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+bn27 = bn.test(coords = coords,
+              cases = scotlip_sf$cancer,
+              pop = scotlip_sf$population,
+              cstar = 27,
+              alpha = 0.01)
+bn27 # simple info
+summary(bn27) # cluster info
+clusters(bn27)
+```
+
+### $c^* = 54$
+
+```{r}
+#| code-fold: true
+#| code-summary: The code
+
+bn54 = bn.test(coords = coords,
+              cases = scotlip_sf$cancer,
+              pop = scotlip_sf$population,
+              cstar = 54,
+              alpha = 0.01)
+bn54 # simple info
+summary(bn54) # cluster info
+clusters(bn54)
+```
+
+## (c)
+
+Interpret the overall results from the tests in (b) in the context of the problem.  
+
+**Solution**
+
+Across all of the scales we see strong evidence that the most compact window containing $c^* = 6, 27, 54$ cases of lip cancer are significantly more compact than what we would expect under the constant risk hypothesis. Note that though I'm being fast and loose with the language here, I want to be clear that I draw the same conclusions for all three tested values of $c^*$. 
+
+## (d)
+
+Plot the results on the map of Scotland counties.  Look at the overarching patterns of the plots.  Are the clusters in roughly the same areas?  Explain.
+
+**Solution**
+
+I put each of the tests on their own plot because I was definitely messing up the code where I put them all on the same plot.
+
+```{r}
+#| code-fold: true
+#| code-summary: Plots on different maps
+
+plot(sf::st_geometry(scotlip_sf), border = "grey60", axes = TRUE,
+     col = color.clusters(bn6))
+legend("topright", legend = c("c* = 6"))
+
+plot(sf::st_geometry(scotlip_sf), border = "grey60", axes = TRUE,
+     col = color.clusters(bn27))
+legend("topright", legend = c("c* = 27"))
+
+plot(sf::st_geometry(scotlip_sf), border = "grey60", axes = TRUE,
+     col = color.clusters(bn54))
+legend("topright", legend = c("c* = 54"))
+```
+
+These clusters largely overlap. $c^{27}$ includes the biggest portion of the map as possible clusters. It also has the most clusters. $c^{54}$ contains a subset of the regions in $c^{27}$, but is more conservative with its results. It only has 2 clusters and does not contain many of the regions from the former result. $c^6$ only has a single region, but it is of note that the other 2 tests also include this one as well. In general what we're seeing is evidence of lip cancer clustering in the northern part of Scotland. There's some slight differences between these results but they all point towards the north.
+
+# Problem 5
+
+Use the Poisson spatial scan test under the CRH to identify potential clusters for the `cancer` variable. Use a significance level of 0.01.
+
+## (a)
+
+State the null and alternative hypotheses in the context of the problem.
+
+**Solution**
+
+$H_0:$ The most likely cluster of males with lip cancer in Scotland (in terms of the local rate of lip cancer in the cluster compared to outside the cluster) is consistent with what is expected under the constant risk hypothesis.
+
+$H_a:$ The most likely cluster of males with lip cancer in Scotland (in terms of the local rate of lip cancer in the cluster compared to outside the cluster) is more extreme than what is expected under the constant risk hypothesis.
+
+## (b)
+
+Apply the spatial scan test to the `cancer` variable using using a population upperbound of 10% of the total population. Use the `expected` variable for the expected number of cases.
+
+**Solution:**
+
+```{r}
+scan = scan.test(coords = coords,
+                 cases = scotlip_sf$cancer,
+                 pop = scotlip_sf$population,
+                 ex = scotlip_sf$expected,
+                 ubpo=0.1
+                 )
+
+summary(scan)
+```
+
+
+## (c)
+
+Interpret the overall results in the context of the problem.  
+
+**Solution**
+
+There is significant evidence that the most likely cluster of males with lip cancer in Scotland is more extreme than what we would expect under the constant risk hypothesis. Much like the previous results, there is strong evidence that there was something going on in the 70s and 80s with male lip cancer in some particular areas of Scotland. 
+
+## (d)
+
+Plot the results on the map of Scotland counties.  
+
+**Solution**
+
+```{r}
+plot(sf::st_geometry(scotlip_sf), border = "grey60", axes = TRUE,
+     col = color.clusters(scan))
+```
+
+
+# Problem 6
+
+How do the plots for the CEPP, Besag-Newell, and scan methods compare to one another? Are the results consistent? How large do you think the true cluster might be?
+
+**Solution**
+
+These results are pretty consistent across methods. We see the most evidence of male lip cancer clustering in the northern part of Scotland specifically. As for how large the true cluster is? I'm not sure. There are some results that remove some of the regions in the middle of the northern area, but a lot of these removals contradict one another and I can't pinpoint an obvious set of regions that I would set as the true cluster. If I was a health official trying to make decisions on these results, I would likely focus on the entire northern half of Scotland as it feels risky to ignore some of these regions arbitrarily. 
