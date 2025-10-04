@@ -20,6 +20,12 @@
     type: "Homework Sheet"
 )
 
+#pagebreak()
+
 #include "18-5.typ"
 
-#include "20-4.typ"
+#pagebreak()
+
+// #include "20-4.typ"
+
+#include "hw10.typ"

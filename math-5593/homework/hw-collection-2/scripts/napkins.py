@@ -18,8 +18,8 @@ def main():
         
         network = True
         ampl.eval("display Total_Cost;")
-        ampl.eval("display demand;")
-        ampl.eval("display Buy, Carry;")
+        ampl.eval("display Available;")
+        ampl.eval("display demand, Buy, Used;")#, Carry;")
         
         if network:
             ampl.eval("display FastLaundry, SlowLaundry, TrashFlow;")
@@ -29,7 +29,7 @@ def main():
     except Exception as e:
         print(f"AMPL ERROR: {e}")
         ampl.eval("display Available, Used;")
-        ampl.eval("display Demand, Carry, Buy;")
+        #ampl.eval("display Demand, Carry, Buy;")
         # ampl.eval("display Stock, InitialNapkins;")
     
 
