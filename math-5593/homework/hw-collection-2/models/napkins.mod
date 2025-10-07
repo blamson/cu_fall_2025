@@ -2,7 +2,7 @@
 param T integer > 0;
 set DAYS := 1..T;
 param initial_stock integer >= 0;                # napkins available for start of day 1
-param demand{DAYS} integer >= 0;                # Number of napkins needed on day t
+param demand{DAYS} integer >= 0;                 # Number of napkins needed on day t
 param napkin_price > 0;                          # Buy price per single napkin
 param wash2_price > 0;                           # Price per napkin for fast laundry
 param wash4_price > 0;                           # price per napkin for slow laundry

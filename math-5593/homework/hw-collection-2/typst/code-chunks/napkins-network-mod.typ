@@ -30,13 +30,13 @@ This is how we dictate the flow of napkins. We need a lot of these to handle all
 arc InitialNapkins <= initial_stock,
     from Stock, to Available[1];
 
-arc Demand {t in 1..DAYS} >= demand[t],
+arc Demand {t in DAYS} >= demand[t],
     from Available[t], to Used[t];
 
 arc Carry {t in 1..T-1} >=0,
     from Available[t], to Available[t+1];
 
-arc Buy {t in 1..DAYS} >= 0,
+arc Buy {t in DAYS} >= 0,
     from Store, to Available[t], obj Total_Cost napkin_price;
 
 arc FastLaundry {t in 1..T-2} >= 0,
@@ -45,7 +45,7 @@ arc FastLaundry {t in 1..T-2} >= 0,
 arc SlowLaundry {t in 1..T-4} >= 0,
     from Used[t], to Available[t+4], obj Total_Cost wash4_price;
 
-arc TrashFlow {t in 1..DAYS} >= 0,
+arc TrashFlow {t in DAYS} >= 0,
     from Used[t], to Trash, obj Total_Cost 0;
 ```
 
