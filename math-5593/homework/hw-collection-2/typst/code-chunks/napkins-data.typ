@@ -1,0 +1,18 @@
+```
+data;
+
+param T := 7;
+param napkin_price := 1.00;
+param wash2_price := 0.50;
+param wash4_price := 0.25;
+param initial_stock := 50;
+
+param demand :=
+    1 294
+    2 27
+    3 129
+    4 246
+    5 111
+    6 251
+    7 182;
+```

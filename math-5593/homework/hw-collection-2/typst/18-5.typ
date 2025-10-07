@@ -22,9 +22,9 @@ There are 2 collections of constraints on these variables, described as such:
 
 === Solution
 
-For this problem I'll be building an AMPL model from scratch. The goal here was to build a set of parameters that would play nice with the given variables. 
+For this problem I'll be building an AMPL model from scratch. The goal here was to build a set of parameters that would play nice with the provided variables. 
 
-#include "code-chunks/napkins.typ"
+#include "code-chunks/napkins-mod.typ"
 
 == Part B
 
@@ -34,43 +34,9 @@ Formulate an alternative network linear programming model for this problem. Writ
 
 === Solution
 
-This one took me a little while to figure out. According to the book, as a general statement, we use `arc` and `node` to take the place of `var` and `subject to` respectively. So there's a lot of reworking here. The objective function simplifies a lot here as well. 
+This one took me a little while to figure out. According to the book, as a general statement, we use `arc` and `node` to take the place of `var` and `subject to` respectively. So there's a lot of reworking here. The objective function simplifies a lot here as well which is nice. 
 
-For starters, the parameters all stay the same.
-
-For the nodes, I visualized it as having one per day, a node for trash and one for the store we buy the napkins for. I also added another node that functions as our day 0 carry. 
-
-```
-node Day {t in DAYS}: net_in = demand[t];
-node Trash;
-node Stock: net_out = initial_stock;
-node Store;
-```
-
-Our objective function is dead simple.
-
-```
-minimize Total_Cost;
-```
-
-This is all we need. The arcs will handle the math on this one. Lastly we got the bulk of the changes, the arcs. The arcs represent all the ways the napkins can flow. They can move from day to day, to the trash, and from the store. There are also the different ways they can flow through the days with the laundering. It's a weird set up to wrap your head around initially but it's very elegant.
-
-```
-arc InitialNapkins,
-    from Stock, to Day[1], obj Total_Cost 0;
-arc Buy {t in DAYS},
-    from Store, to Day[t], obj Total_Cost napkin_price;
-arc Carry {t in 1..T-1},
-    from Day[t], to Day[t + 1], obj Total_Cost 0;
-arc FastLaundry {t in 1..T-2},
-    from Day[t], to Day[t+2], obj Total_Cost wash2_price;
-arc SlowLaundry {t in 1..T-4},
-    from Day[t], to Day[t+4], obj Total_Cost wash4_price;
-arc TrashFlow {t in DAYS},
-    from Day[t], to Trash, obj Total_Cost 0;
-```
-
-This is also where the objective function gets handled. All of these arcs have costs and the solver will handle them automatically with these statements. 
+#include "code-chunks/napkins-network-mod.typ"
 
 == Part C
 
@@ -100,3 +66,19 @@ Full source of the article: Annals of the History of Computing, Volume 6, Number
 Since this is an artificial problem, you might as well make up your own data for it. Use your data to check that the formulations in (a) and (b) give the same optimal value.
 
 === Solution
+
+I kept the data pretty simple here and just randomly generated some daily demands.
+
+#include "code-chunks/napkins-data.typ"
+
+All of these values are totally arbitrarily.
+
+*Traditional AMPL model Output*
+
+#include "code-chunks/napkins-model-output.typ"
+
+*Network Model Output*
+
+#include "code-chunks/napkins-network-output.typ"
+
+What we see here is that, though there are some slight difference in strategy on day 4, that both solutions reach the same total cost. 

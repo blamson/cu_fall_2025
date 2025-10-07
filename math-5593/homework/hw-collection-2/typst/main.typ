@@ -4,6 +4,10 @@
 #show selector(heading.where(level: 3)): set heading(numbering: none)
 #show selector(heading.where(level: 4)): set heading(numbering: none)
 
+#import "@preview/thmbox:0.3.0": *
+#show: thmbox-init()
+
+
 #show: project.with(
     title: "Homework Collection 2",
 
@@ -29,3 +33,5 @@
 // #include "20-4.typ"
 
 #include "hw10.typ"
+
+#include "hw11.typ"

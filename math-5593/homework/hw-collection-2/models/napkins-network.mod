@@ -9,20 +9,20 @@ param wash4_price > 0;                           # price per napkin for slow lau
 
 node Available {t in DAYS}: net_out = 0;
 node Used {t in DAYS}: net_out = 0;
-#node Stock: net_out = initial_stock;             # functions basically as carry[0]
+node Stock: net_out = initial_stock;             # functions basically as carry[0]
 node Store: net_out >= 0;                        # Provides napkins to days
 node Trash: net_in >= 0;
 
 minimize Total_Cost;
 
-#arc InitialNapkins <= initial_stock,
-#    from Stock, to Available[1];
+arc InitialNapkins <= initial_stock,
+    from Stock, to Available[1];
 
-arc Demand {t in DAYS} >= 0,
+arc Demand {t in DAYS} >= demand[t],
     from Available[t], to Used[t];
 
-#arc Carry {t in 1..T-1} >=0,
-#    from Available[t], to Available[t+1];
+arc Carry {t in 1..T-1} >=0,
+    from Available[t], to Available[t+1];
 
 arc Buy {t in DAYS} >= 0,
     from Store, to Available[t], obj Total_Cost napkin_price;
