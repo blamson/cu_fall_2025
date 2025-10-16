@@ -7,7 +7,6 @@
 #import "@preview/thmbox:0.3.0": *
 #show: thmbox-init()
 
-
 #show: project.with(
     title: "Homework Collection 2",
 
@@ -15,7 +14,7 @@
     semester: [Fall 2025],
     seminar: [MATH 5939 - Linear Programming],
 
-    show-outline: true,
+    show-outline: false,
 
     author: "Brady Lamson",
 
@@ -24,14 +23,32 @@
     type: "Homework Sheet"
 )
 
-#pagebreak()
-
-#include "18-5.typ"
+#outline(depth:2, title: "Table of Contents")
 
 #pagebreak()
 
-// #include "20-4.typ"
+#include "hw8.typ"
+
+#pagebreak()
+
+#include "hw9.typ"
+
+#pagebreak()
 
 #include "hw10.typ"
 
+#pagebreak()
+
 #include "hw11.typ"
+
+#pagebreak()
+
+#include "hw12.typ"
+
+#pagebreak()
+
+#include "hw13.typ"
+
+#pagebreak()
+
+#include "hw14.typ"

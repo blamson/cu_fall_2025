@@ -1,1 +1,0 @@
-= Homework 9: AMPL Exercise 20-4
