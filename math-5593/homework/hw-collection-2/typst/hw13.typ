@@ -41,3 +41,39 @@ Prove the following theorem:
 ]
 
 == Solution
+
+#proof[
+  $(A implies B)$:
+  Assume #xbar is a vertex of $S$ and that it is *not* an extreme point. 
+
+  Let $y, z$ also be feasible points in $S$ such that $y != z$. Also let $lambda in [0,1]$. Because #xbar is not an extreme point, it can be represented as a a convex combination of two other points in $S$. Therefore we can state that
+
+  $
+    #xbar = lambda y + (1 - lambda)z
+  $
+
+  As #xbar is a vertex, we know that it has active constraints such that $a_i^T #xbar = b_i$. Plugging in the equality for #xbar gives us:
+
+  $
+    a_i^T #xbar = lambda a_i^T y + a_i^T (1-lambda) z = b_i
+  $
+  
+  
+  As for $y$ and $z$, since they're feasible points we know that: 
+  
+  $
+    a_i^T y &>= b_i &#h(1cm) a_i^T z &>= b_i \
+    lambda a_i^T y &>= lambda b_i &#h(1cm) (1 - lambda) a_i^T z &>= (1 - lambda) b_i
+  $ 
+
+  It follows from this that 
+
+  $
+    lambda a_i^T y + (1 - lambda) a_i^T z &>= lambda b_i + (1-lambda)b_i \
+    &>= b_i(lambda + 1 - lambda) \
+    &>= b_i
+  $
+
+  This is only ever an equality when $y=z$ which is contradicted by our construction of $y,z$ where $y != z$. 
+
+]
