@@ -3,9 +3,7 @@
 #show selector(heading.where(level: 2)): set heading(numbering: none)
 #show selector(heading.where(level: 3)): set heading(numbering: none)
 #show selector(heading.where(level: 4)): set heading(numbering: none)
-
-#import "@preview/thmbox:0.3.0": *
-#show: thmbox-init()
+// #set thmbox.qed: "∎"
 
 #show: project.with(
     title: "Homework Collection 2",
@@ -22,6 +20,9 @@
     show-lines: false,
     type: "Homework Sheet"
 )
+
+#import "@preview/thmbox:0.3.0": *
+#show: thmbox-init()
 
 #outline(depth:2, title: "Table of Contents")
 
