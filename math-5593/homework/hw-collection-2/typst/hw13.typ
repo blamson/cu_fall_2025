@@ -93,7 +93,7 @@ In other words, the columns of $A_(#xbar)$ are linearly dependent. Hence there i
     &= 2 #xbar
   $
 
-  Now, if include $lambda = 1/2$:
+  Now, suppose $lambda = 1/2$:
 
   $
     1/2 x_1 + (1- 1/2)x_2 &= 1/2(#xbar + epsilon) + 1/2(#xbar - epsilon) \ 
