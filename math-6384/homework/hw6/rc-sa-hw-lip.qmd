@@ -175,11 +175,52 @@ Return the sample mean of this matrix.
 
 **Solution**
 
+We can just use the base R distance function for this. We take the mean BEFORE the matrix function so we don't include the 0 diagonals. 
+
+```{r}
+coords = as.matrix(dtf[,c("x", "y")])
+
+d <- dist(coords)
+print(mean(d)) # Mean of just the lower triangle
+d = as.matrix(d)
+```
+
 ## (b)
 
 Using the distance matrix above, determine all possible windows (in terms of the region ids each window includes) in terms of nearest neighbors (the largest would have 3 non-inclusive neighbors). Print the complete list of windows.
 
 **Solution**
+
+Kinda goal output here:
+[[1]] 1
+[[2]] 1 3
+[[3]] 1 3 2
+[[4]] 1 3 2 4
+[[5]] 2
+[[6]] 2 3
+[[7]] 2 3 1
+[[8]] 2 3 1 4
+...
+
+```{r}
+windows <- list()
+windows_idx <- 1
+
+# Go through each row, order em by distance and then
+# iteratively add each nearest neighbor to the candidate windows
+for (i in 1:nrow(d)) {
+    ordered_row <- order(d[i,]) # gives INDICES not values.
+
+    for (j in 1:length(ordered_row)) {
+        j_nn <- ordered_row[1:j] # Collect up to 'j' nearest neighbors
+        windows[[windows_idx]] <- j_nn
+        windows_idx <- windows_idx + 1
+    }
+}
+
+print(windows)
+```
+
 
 ## (c)
 
@@ -187,11 +228,58 @@ Determine the population size of each window to identify which windows have less
 
 **Solution**
 
+Let's modify the previous sections code a bit to capture this info. 
+
+```{r}
+total_pop <- sum(dtf$population)
+
+windows <- list()
+window_populations <- c()
+windows_idx <- 1
+
+# Go through each row, order em by distance and then
+# iteratively add each nearest neighbor to the candidate windows
+for (i in 1:nrow(d)) {
+    ordered_row <- order(d[i,]) # gives INDICES not values.
+
+    for (j in 1:length(ordered_row)) {
+        j_nn <- ordered_row[1:j] # Collect up to 'j' nearest neighbors
+        window_pop <- sum(dtf$population[c(j_nn)])
+        window_populations[windows_idx] <- window_pop
+        # print(window_pop)
+        windows[[windows_idx]] <- j_nn
+        windows_idx <- windows_idx + 1
+    }
+}
+
+# Sorry for the huge output!
+for (i in 1:length(windows)) {
+    print(paste0("Window: ", windows[i]))
+    print(paste0("Population: ", window_populations[i]))
+    print("---")
+}
+```
+
+
 ## (d)
 
 Only retain the windows that satisfy the population constraint. Print the list of retained windows.
 
 **Solution**
+
+```{r}
+pop_constraint <- total_pop / 2
+retained_windows_idx <- which(window_populations <= pop_constraint)
+retained_windows <- windows[retained_windows_idx]
+retained_populations <- window_populations[retained_windows_idx]
+
+for (i in 1:length(retained_windows)) {
+    print(paste0("Window: ", retained_windows[i]))
+    print(paste0("Population: ", retained_populations[i]))
+    print("---")
+}
+```
+
 
 ## (e)
 
