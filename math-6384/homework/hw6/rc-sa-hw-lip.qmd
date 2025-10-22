@@ -2,6 +2,8 @@
 title: "Hw06 - Regional Count Data Homework (Spatial Autocorrelation)"
 format: html
 self-contained: true
+author: Brady Lamson
+date: 10/22/2025
 ---
 
 The `lip_sf` is an `sf` data frame with 53 rows representing counties and 5 variables. The data frame contains 53 county-level observations for lip cancer among males in Scotland between 1975-1980. The variables are:
@@ -287,8 +289,63 @@ For each remaining window, compute $Y_{in}$, $Y_{out}$, $E_{in}$, $E_{out}$. Pri
 
 **Solution**
 
+- yin is number of cases in the window
+- ein is r * population in the window
+- yout number of cases everywhere else
+- eout r * population outside the window
+- assume r is the overall rate of cases
+
+Really not a lot to say here. We simply collect the information we need. Summing up and scaling the necessary rows from the original dataset. 
+
+```{r}
+r <- sum(dtf$cases) / sum(dtf$population)
+n <- length(retained_windows)
+window_df <- data.frame(
+    regions = I(retained_windows),
+    yin = numeric(n),
+    ein = numeric(n),
+    yout = numeric(n),
+    eout = numeric(n)
+)
+
+for (i in 1:length(retained_windows)) {
+    window_df$ein[i] <- r * sum(dtf[retained_windows[[i]], "population"])
+    window_df$yin[i] <- sum(dtf[retained_windows[[i]], "cases"])
+    window_df$yout[i] <- sum(dtf[-retained_windows[[i]], "cases"])
+    window_df$eout[i] <- r * sum(dtf[-retained_windows[[i]], "population"])
+}
+
+window_df
+```
+
+
 ## (f)
 
 Compute the statistic $\left(\frac{Y_{in}}{E_{in}}\right)^{Y_{in}} \left(\frac{Y_{out}}{E_{out}}\right)^{Y_{out}} I\left(\frac{Y_{in}}{E_{in}} \geq \frac{Y_{out}}{E_{out}}\right)$ for each remaining window.
 
 **Solution**
+
+I believe the below code is pretty self explanatory. We just apply this formula to every row in the windows dataframe! 
+
+```{r}
+window_df$test_stat <- apply(window_df, 1, function(row) {
+    yin <- as.numeric(row["yin"])
+    ein <- as.numeric(row["ein"])
+    yout <- as.numeric(row["yout"])
+    eout <- as.numeric(row["eout"])
+    
+    in_frac <- yin / ein
+    out_frac <- yout / eout
+    check <- in_frac >= out_frac
+    
+    if (check) {
+        return((in_frac ^ yin) * (out_frac ^ yout))
+    } else {
+        return(0)
+    }
+})
+
+window_df
+```
+
+And with that we're done. 
