@@ -339,7 +339,7 @@ window_df$test_stat <- apply(window_df, 1, function(row) {
     check <- in_frac >= out_frac
     
     if (check) {
-        return((in_frac ^ yin) * (out_frac ^ yout))
+        return((in_frac ^ yin) * (out_frac ^ yout)) * check
     } else {
         return(0)
     }

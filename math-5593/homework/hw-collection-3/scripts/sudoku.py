@@ -17,7 +17,7 @@ def main():
     ampl.read(f"{homework_path}/models/{model_path}.mod")
     ampl.read_data(f"{homework_path}/data/sudoku.dat")
     
-    logging = False
+    logging = True
 
     logger.info("Running solution")
     ampl.solve()
@@ -25,7 +25,8 @@ def main():
         ampl.eval("display grid_data;")
         ampl.eval("display FIXED;")
         ampl.eval("display MODIFIABLE;")
-        ampl.eval("display X;")
+        if not alldiff:
+            ampl.eval("display {i in 1..gridsize, j in 1..gridsize} X[i,j,1];")
     sol = ampl.getVariable("X")
     
     if not alldiff:
