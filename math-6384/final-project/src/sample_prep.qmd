@@ -24,12 +24,19 @@ The goal of this notebook is to further clean up the maryland bee data file, hop
 
 To be honest, to keep it simple here just remove any of the points that fall outside the bounds of maryland. We're going to still have some bad data but we can discuss that in the paper. 
 
-```{r, echo=FALSE}
-sf_bees <- st_as_sf(df, coords = c("decimalLongitude", "decimalLatitude"))
-maryland <- st_as_sf(maps::map("state", region=c('maryland'), plot = FALSE, fill = TRUE))
-sf::st_crs(sf_bees) <- sf::st_crs(maryland)
-sf_bees <- sf_bees[st_intersects(sf_bees, maryland, sparse = FALSE), ] # only keep points in maryland bounds
+```{r}
+maryland <- maps::map("state", region = "maryland", fill = TRUE, plot = FALSE)
+maryland <- st_as_sf(maryland)
+maryland <- st_set_crs(maryland, 4326)
+maryland <- st_transform(maryland, 6487)
 
+sf_bees <- st_as_sf(df, coords = c("decimalLongitude", "decimalLatitude"))
+st_crs(sf_bees) <- 4326
+sf_bees <- st_transform(sf_bees, 6487)
+```
+
+```{r, echo=FALSE}
+sf_bees <- sf_bees[st_intersects(sf_bees, maryland, sparse = FALSE), ] # only keep points in maryland bounds
 ggplot() +
     geom_sf(data = maryland, fill = "white", color = "gray40") + 
     geom_sf(data = sf_bees, aes(color=as.factor(decade)), alpha = 0.3, pch=21, size = 1) + 
@@ -47,6 +54,7 @@ Let's force 500 rows per decade here. We have plenty of data for that.
 ```{r}
 set.seed(100)
 bees_sampled <- sf_bees %>%
+    filter(!is.na(locality)) %>%
     group_by(decade) %>%
     dplyr::slice_sample(n=500)
 ```
