@@ -1,0 +1,335 @@
+---
+title: "Hw07 - Geostatistics Homework (Spatial Dependence)"
+format: html
+self-contained: true
+author: Brady Lamson
+date: 11/1/2025
+---
+
+The `ox.rda` file contains 126 soil augerings on a 100 x 100m square grid, with 6 columns and 21 rows. Grid is oriented with long axis North-north-west to South-south-east Origin of grid is South-south-east point, 100m outside grid.
+
+The original data are part of a soil survey carried out by P.A. Burrough in 1967. The survey area is located on the chalk downlands on the Berkshire Downs in Oxfordshire, UK. The data frame contains the following variables:
+
+- `x`: x-coordinate, field, non-projected.
+- `y`: y-coordinate, field, non-projected.
+- `k`: K (potassium), 0-20 cm, ppm.
+
+These data are a subset of the `oxford` data set contained in the **gstat** package.
+
+Load the `ox` data frame.
+
+Then:
+
+1. Use the `ox` data frame to create an `sf` object using `x` and `y` as coordinates.
+2. Use the `sf` `data.frame` to construct a `gstat` object using `k` as the response with a constant mean. 
+3. Construct a `geodata` object (from the **geoR** package) with `k` as the response.
+
+```{r}
+#| include: false
+library(sf)
+library(smerc)
+library(spdep)
+library(geoR)
+library(gstat)
+```
+
+```{r}
+load("ox.rda")
+ox <- sf::st_as_sf(ox, coords = c("x", "y"))
+```
+
+
+# Problem 1 
+
+Create a bubble plot of the observed data using 10 bins from 0 to 10 in increments of 1.
+
+**Solution**
+
+```{r}
+plot(ox["k"], pal = hcl.colors, pch=20, nbreaks=10)
+```
+
+
+# Problem 2 (Using **gstat**)
+
+## (a)
+
+Create a `gstat` variogram object.  The cutoff distance should be 600.  The width of each lag interval should be the cutoff distance divided by 16.  Plot this object.  Does the semivariogram seem to have a well-defined structure?  If so, what are the sill, nugget effect, and range, approximately?
+
+**Solution**
+
+```{r}
+gox = gstat(id = "k", formula = k ~ 1, data = ox)
+variog1 = variogram(gox, cutoff = 600, width = 600/16)
+plot(variog1)
+```
+
+Overall the structure is mostly flat aside from a single point trending downward so these are very rough guesses.
+
+It's hard to say as we don't have any points extremely close together, so the structure close to 0 is unclear. I'd say the sill seems to be at around $8000$. Range seems to be about $200$. If I had to guess at the nugget effect I'd say its around $6500$. Really hard to tell on the nugget though. 
+
+## (b)
+
+Fit exponential, spherical, and Matern semivariogram models to the empirical semivariogram in (a) using WRSS.  Use `fit.kappa = TRUE` for the Matern model to estimate the associated smoothness parameter.
+
+Use a table to summarize the estimated partial sill, range parameter, and nugget for each model.  What is the estimated smoothness parameter for the Matern model?
+
+**Solution**
+
+Note, I used a variety of initial values as I trying to sort out a singular model warning but I never quite sorted that out. 
+
+```{r, warning=FALSE}
+# EXPONENTIAL
+fitexp = fit.variogram(variog1,
+                       vgm(psill = 2000, model = "Exp", range = 100, nugget = 6000),
+                       fit.method = 2, fit.kappa = FALSE)
+
+# SPHERICAL
+fitsph = fit.variogram(variog1,
+                       vgm(psill = 4000, model = "Sph", range = 300, nugget = 3000),
+                       fit.method = 2, fit.kappa = FALSE)
+
+# MATTERN
+fitmat = fit.variogram(variog1,
+                       vgm(psill = 7000, model = "Mat", range = 150, nugget = 1000),
+                       fit.method = 2, fit.kappa = TRUE)
+```
+
+|model|psill|range|nugget|kappa|
+|---|---|---|---|---|
+|Exponential|8447.54|58.63|0|na|
+|Spherical|7179.46|173.62|1201.79|na|
+|Matern|8468.99|77.90|0|0.3|
+
+
+## (c)
+
+In one plot, overlay each fitted variogram model from (c) to the empirical semivariogram found in (b).  Note: You will need to extract the relevant information from your gstat variogram object.  Also, you will probably want to use the `variogramLine` function to obtain values for the theoretical models of each fitted model.  Use this information to construct a single plot with the empirical semivariogram and the fitted models, making sure to label each model properly.
+
+**Solution**
+
+```{r}
+maxdist <- max(variog1$dist)
+exp_values <- variogramLine(fitexp, maxdist=maxdist)
+sph_values <- variogramLine(fitsph, maxdist=maxdist)
+mat_values <- variogramLine(fitmat, maxdist=maxdist)
+plot(x=variog1$dist, y=variog1$gamma, xlab="Distance", ylab="Semivariance")
+lines(x=exp_values$dist, y=exp_values$gamma, col="red", lty=1, lwd=2)
+lines(x=sph_values$dist, y=sph_values$gamma, col="blue", lty=2, lwd=2)
+lines(x=mat_values$dist, y=mat_values$gamma, col="purple", lty=3, lwd=2)
+legend("topleft", legend=c("Exponential", "Spherical", "Matern"),
+       col=c("red", "blue", "purple"), lty = 1:3, cex=0.8)
+```
+
+
+# Problem 2 (Using **geoR**)
+
+## (a)
+
+Use the geoR `variog` function to create an empirical semivariogram.  The `max.dist` value should be the same as the cutoff from Problem 2.  Use 20 lag intervals.  Plot this object.
+
+**Solution**
+
+```{r}
+load("ox.rda")
+geox = as.geodata(ox)
+ox_variog = geoR::variog(geox, max.dist = 600, uvec = 20)
+plot(ox_variog)
+```
+
+
+## (b)
+(Fit exponential, spherical, and Matern variogram models to empirical semivariogram in (a) using WRSS.  Use `fix.kappa = FALSE` for the Matern model to estimate the associated smoothness parameter.  Use a table to summarize the estimated partial sill, range parameter, and nugget for each model.  Provide plots of each fitted variogram model to the empirical variogram.  What is the estimated smoothness parameter for the Matern model?
+
+```{r, warning=FALSE}
+# ini.cov.pars = c(c, a). nugget = c0
+fitexp2 <- variofit(ox_variog, ini.cov.pars = c(2000, 100),
+                   nugget = 6000, cov.model = "exponential",
+                   weights = "cressie")
+
+fitsph2 <- variofit(ox_variog, ini.cov.pars = c(2000, 100),
+                   nugget = 6000, cov.model = "spherical",
+                   weights = "cressie")
+
+fitmat2 <- variofit(ox_variog, ini.cov.pars = c(2000, 100),
+                   nugget = 6000, kappa=1, cov.model = "matern",
+                   weights = "cressie", fix.kappa = FALSE)
+```
+
+|model|psill|range|nugget|kappa|
+|---|---|---|---|---|
+|Exponential|8513.21|58.41|0|na|
+|Spherical|6162.34|100|2162.34|na|
+|Mattern|2016.92|6.14|6019.43|75.49|
+
+The matern was throwing a million warnings at me regardless of the initial values used.
+
+```{r}
+plot(ox_variog, main="Exponential model fit")
+lines(fitexp2)
+```
+
+```{r}
+plot(ox_variog, main="Spherical model fit")
+lines(fitsph2)
+```
+
+```{r}
+plot(ox_variog, main="Matern model fit")
+lines(fitmat2)
+```
+
+
+## (c)
+
+In one plot, overlay each fitted variogram model from (b) to the empirical semivariogram found in (a).  Making sure to label each model properly.
+
+**Solution**
+
+```{r}
+plot(ox_variog)
+lines(fitexp2, col="red", lty=1, lwd=2)
+lines(fitsph2, col="blue", lty=2, lwd=2)
+lines(fitmat2, col="purple", lty=3, lwd=2)
+legend("bottomright", legend=c("Exponential", "Spherical", "Matern"),
+       col=c("red", "blue", "purple"), lty = 1:3, cex=0.8)
+```
+
+
+## (d)
+
+Use the `variog4` function to create a directional semivariogram (using the default direction).  Set `maxdist` to be 600. Use 10 bins. Plot this object.  What kind of anisotropy does this appear to be?  Why? (Note that there are few observations in certain bins, so there may be some "missing" data).
+
+**Solution**
+
+```{r}
+variog3d = variog4(geox, max.dist = 600, uvec=10)
+plot(variog3d)
+```
+
+To be completely honest here it's extremely difficult for me to tell what kind of anisotropy I'm seeing here. There's a ton of gaps and the semivariograms all look very similar otherwise. I genuinely feel like if I picked a type I'd just be making up reasons why. I'm going to go with "there isn't enough information to make a decision". 
+
+## (e)
+
+Use REML to fit an omnidirectional spherical semivariogram model to the observed data.  Then fit a directional semivariogram model with `psiA = pi/2` and `psiR = 1`.  Make sure that the `psiA` and `psiR` parameters are not fixed during estimation for the second parameter.  For both models use initial values of 6000 for the partial sill, 50 for the range parameter, and 1000 for the nugget.  Note:  this will take a fair bit of time.  Which model should be preferred, in terms of AIC?
+
+**Solution**
+
+```{r}
+lfit1 = likfit(geox, ini.cov.pars = c(6000, 50),
+               nugget = 1000,
+               cov.model = "spherical",
+               lik.method = "REML")
+
+lfit2 = likfit(geox, ini.cov.pars = c(6000, 50),
+               nugget = 1000,
+               cov.model = "spherical",
+               lik.method = "REML",
+               psiA = pi/2, psiR = 1,
+               fix.psiR = FALSE, fix.psiA = FALSE)
+```
+
+The omnidirectional spherical model had an AIC of 1499. The directional model had an AIC of 1503. Therefore, the omnidirectional model is preferred in terms of AIC.
+
+# Problem 3
+
+Write code to manually construct and plot an omnidirectional semivariogram for the oxford data.  Use 16 lag intervals and a distance upper bound of 600.  Some steps to do this:
+
+## (a)
+
+Create a matrix that describes the indices of all unique pairs of points $(1, 2), (1, 3), (1, N), (2, 3), .., (2, N), \ldots, (N-1, N)$. Each row should be a different pair.
+
+```{r}
+# We can use the combn function here. it returns a matrix we can simply transpose to get what we need
+coord_pairs <- t(combn(nrow(ox), m=2))
+head(coord_pairs)
+tail(coord_pairs)
+(choose(126, 2)) # just to sanity check the row count
+```
+
+
+## (b)
+
+Compute the distances between all unique pairs of observed points.  The distances for the unique pairs should be stored in a vector (in the same order as 1). **Print the range of these distances.**
+
+```{r}
+all_distances <- as.matrix(dist(ox[, 1:2])) # Compute all possible pairwise distances. 126X126 matrix.
+distances <- all_distances[cbind(coord_pairs[,1], coord_pairs[,2])] # Filter down and clean up format
+head(distances)
+```
+
+
+## (c)
+
+Compute the squared difference between the responses for all unique pairs of points (in the same order as 1). **Print the range of the square response differences**.
+
+```{r}
+squared_diffs <- (ox[coord_pairs[,1], 3] - ox[coord_pairs[,2], 3])^2
+print(range(squared_diffs))
+```
+
+## (d)
+
+Determine the endpoints for your lag intervals/tolerance regions using a max distance of 600 and 16 bins. **Print the endpoints**.
+
+```{r}
+endpoints <- seq(0, 600, 600/16)
+endpoints
+```
+
+17 points but 16 intervals! 
+
+## (e)
+
+Use the `cut` function to bin the distances based on their associated tolerance region.
+
+```{r}
+binned_distances <- cut(distances, endpoints, include.lowest = TRUE, right = FALSE)
+head(distances)
+head(binned_distances)
+```
+
+
+## (f)
+
+Use the `tapply` function to average the distances in each bin using the labels from the cut function. **Print the results**.
+
+```{r}
+avg_dist_per_bin <- tapply(distances, binned_distances, mean)
+avg_dist_per_bin
+```
+
+
+## (g)
+
+Use the `tapply` function to average the squared response differences in each bin using the labels from the cut function. Then divide by 2. **Print the results**.
+
+```{r}
+avg_diff_per_bin <- tapply(squared_diffs, binned_distances, mean) / 2
+avg_diff_per_bin
+```
+
+## (h)
+
+Plot the result of g (y-axis) vs the result of f (x-axis). Set the y-axis limits to be from 0 to 9000.
+
+```{r}
+plot(x=avg_dist_per_bin, y=avg_diff_per_bin, ylim = c(0, 10000), xlim=c(0, 600))
+```
+
+
+# Problem 4
+
+What is the difference between second-order and intrinsic stationarity for a geostatistical process?
+
+(Taken from the textbook)
+
+They're very similar. Both assume a constant mean across the study area and care about the difference between two points. Second order stationarity has requirement involving the behavior of the covariance of two points, whereas intrinsic stationarity in defined in terms of the variogram which cares about spacial lag. 
+
+# Problem 5
+
+What is the difference between an isotropic and anisotropic geostatistical process?
+
+An isotropic geostatistical process is one where the semivariance only depends on distance. Say if you start out at a point and walk outwards to another point, how much you expect those two points to differ based on some metric will only depend on the distance you traveled. An anisotropic process would also take into the direction. So you'd expect different kinds of variability depending on if your goal point is due north or due west. 
+
+An anisotrpic process is like weather in Colorado. You'd expect different shifts in the local weather if you drive north from Denver versus driving west into the mountains. 

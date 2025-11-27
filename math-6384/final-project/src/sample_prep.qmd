@@ -1,0 +1,78 @@
+---
+title: "Data Cleaning"
+author: "Brady Lamson"
+format: html
+self-contained: true
+---
+
+```{r, include=FALSE}
+packages <- c("readr", "dplyr", "tidyr", "here", "sf", "smerc", "spdep", "ggplot2", "maps")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+df <- readr::read_csv(here::here("final-project/data/maryland_bees.csv"))
+```
+
+The goal of this notebook is to further clean up the maryland bee data file, hopefully iron out the spatial data quality and randomly sample down to a smaller dataset for the project. 
+
+# Regional Wackery
+
+To be honest, to keep it simple here just remove any of the points that fall outside the bounds of maryland. We're going to still have some bad data but we can discuss that in the paper. 
+
+```{r, echo=FALSE}
+sf_bees <- st_as_sf(df, coords = c("decimalLongitude", "decimalLatitude"))
+maryland <- st_as_sf(maps::map("state", region=c('maryland'), plot = FALSE, fill = TRUE))
+sf::st_crs(sf_bees) <- sf::st_crs(maryland)
+sf_bees <- sf_bees[st_intersects(sf_bees, maryland, sparse = FALSE), ] # only keep points in maryland bounds
+
+ggplot() +
+    geom_sf(data = maryland, fill = "white", color = "gray40") + 
+    geom_sf(data = sf_bees, aes(color=as.factor(decade)), alpha = 0.3, pch=21, size = 1) + 
+    theme_minimal() +
+    labs(
+        title = "Bee Observations Across Maryland",
+        color = "Decade"
+    )
+```
+
+# Try a random sample
+
+Let's force 500 rows per decade here. We have plenty of data for that. 
+
+```{r}
+set.seed(100)
+bees_sampled <- sf_bees %>%
+    group_by(decade) %>%
+    dplyr::slice_sample(n=500)
+```
+
+Plot one more time. 
+
+```{r}
+ggplot() +
+    geom_sf(data = maryland, fill = "white", color = "gray40") + # Plot the maryland borders
+    geom_sf(data = bees_sampled, aes(color=as.factor(decade)), alpha = 0.3, pch=21, size = 1) + # plot the BEEEEES
+    theme_minimal() +
+    labs(
+        title = "Bee Observations Across Maryland",
+        color = "Decade"
+    )
+```
+
+# Trim down the columns
+
+```{r}
+bees_sampled <- bees_sampled %>% 
+    select(c("gbifID", "family", "locality", "year", "decade", "geometry"))
+```
+
+# Write Dataset
+
+```{r}
+sf::st_write(bees_sampled, "final-project/data/maryland_bee_sample.gpkg")
+```

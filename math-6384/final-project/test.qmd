@@ -10,17 +10,36 @@ format: html
 ```{r}
 library(readr)
 library(dplyr)
+library(sf)
+library(smerc)
+library(spdep)
 ```
 
 ```{r}
-# path <- "data/0029162-251009101135966.csv"
-path <- "full_bee_dataset.csv"
+path <- "data/full_bee_dataset.csv"
 df <- readr::read_delim(path, delim="\t")
 ```
 
 ```{r}
 df
 ```
+
+```{r}
+df_slim <- df %>%
+    select(
+        c(
+            "gbifID", "occurrenceID", "family", "scientificName", 
+            "countryCode", "locality", "stateProvince", "individualCount", 
+            "decimalLatitude", "decimalLongitude", 
+            "eventDate", "day", "month", "year", "dateIdentified",
+            "basisOfRecord", "institutionCode", "collectionCode"
+        )
+    ) %>% 
+    tidyr::drop_na("decimalLongitude")
+
+df_slim
+```
+
 
 Initial filtering steps: Filter down to - USA or CO - Just the bee families
 
@@ -31,7 +50,7 @@ Do some initial grouping on years, months for stuff - wanna figure out if its fe
 Tons of insect families in this dataset. Only so many are actually bees.
 
 ```{r}
-df %>%
+df_slim %>%
     group_by(family) %>%
     count() %>%
     arrange(desc(n), )
@@ -52,7 +71,9 @@ Below table taken from the Taxonomic scope section of the docs.
 
 ```{r}
 bee_families <- c("Andrenidae", "Apidae", "Colletidae", "Halictidae", "Megachilidae", "Melittidae")
-bee_df <- df %>% filter(family %in% bee_families)
+bee_df <- df_slim %>% 
+    filter(family %in% bee_families) %>%
+    tidyr::drop_na("decimalLongitude")
 ```
 
 ```{r}
@@ -72,8 +93,9 @@ co_bees <- bee_df %>% filter(stateProvince == "Colorado")
 ```
 
 ```{r}
-co_bees %>% filter(locality == "Rocky Mountain N.P.")
+AMERICA_bees %>% group_by(stateProvince) %>% count() %>% arrange(stateProvince, desc(n))
 ```
+
 
 ```{r}
 co_bees %>% group_by(locality) %>% count() %>% arrange(desc(n))
@@ -84,3 +106,34 @@ co_bees %>% group_by(locality) %>% count() %>% arrange(desc(n))
 # Relevant papers made using this data
 
 [Spatial patterns of bee captures in North American bowl trapping surveys](https://resjournals.onlinelibrary.wiley.com/doi/10.1111/j.1752-4598.2009.00074.x)
+
+
+```{r}
+sf <- st_as_sf(AMERICA_bees, coords=c("decimalLongitude", "decimalLatitude"))
+coords <- st_coordinates(st_centroid(st_geometry(sf)))
+plot(coords)
+```
+
+```{r}
+library(sf)
+library(ggplot2)
+library(maps)
+
+# convert your data to sf
+sf_bees <- st_as_sf(AMERICA_bees, coords = c("decimalLongitude", "decimalLatitude"), crs = 4326)
+
+# get US states geometry and convert to sf
+us_states <- st_as_sf(map("state", plot = FALSE, fill = TRUE))
+
+# plot the states and your bee locations
+ggplot() +
+  geom_sf(data = us_states, fill = "white", color = "gray40") +
+  geom_sf(data = sf_bees, color = "goldenrod2", alpha = 0.7, size = 1) +
+  coord_sf(xlim = c(-125, -65), ylim = c(25, 50)) +
+  theme_minimal() +
+  labs(title = "Bee Observations Across the U.S.")
+
+```
+
+
+

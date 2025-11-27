@@ -1,4 +1,4 @@
-= Homework 16
+= Homework 16 (PRECHECKED)
 
 == Problem
 
@@ -102,17 +102,17 @@ X [*,*]
 
 As we cam see it reaches the same solution as both myself and the previous model.
 
-== Some fun notes!
+// == Some fun notes!
 
-Sudoku is considered an *NP-Complete* problem. This means a few things. 
+// Sudoku is considered an *NP-Complete* problem. This means a few things. 
 
-1. The problem has a decision (yes/no) structure. "Can we fill the sudoku grid such that..."
-2. There currently isn't a known way to solve a sudoku problem in polynomial time. 
-3. Verifying a sudoku solution *can* be done in polynomial time. 
-4. If a polynomial time solution was found for sudoku, that solution could then be used to find a polynomial time solution to all other NP Complete problems.
+// 1. The problem has a decision (yes/no) structure. "Can we fill the sudoku grid such that..."
+// 2. There currently isn't a known way to solve a sudoku problem in polynomial time. 
+// 3. Verifying a sudoku solution *can* be done in polynomial time. 
+// 4. If a polynomial time solution was found for sudoku, that solution could then be used to find a polynomial time solution to all other NP Complete problems.
 
-*Some examples:*
-- Sudoku (duh)
-- Graph Coloring
-- Knapsack Problem (decision version)
-- Traveling Salesman
+// *Some examples:*
+// - Sudoku (duh)
+// - Graph Coloring
+// - Knapsack Problem (decision version)
+// - Traveling Salesman

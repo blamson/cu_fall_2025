@@ -1,0 +1,124 @@
+---
+title: "Project Proposal"
+author: "Brady Lamson"
+format: html
+self-contained: true
+---
+
+```{r, include=FALSE}
+packages <- c("readr", "dplyr", "tidyr", "here", "sf", "smerc", "spdep", "ggplot2", "maps")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+df <- readr::read_csv(here::here("final-project/data/maryland_bees.csv"))
+```
+
+
+Provide the the following information for your project.
+
+# Question 1. 
+
+**What research question(s) do you hope to answer?**
+
+This project is about bees. Over the past 50+ years in America we have seen a drop in bee populations across the country. This trend is not a global one; some continents such as Africa, Europe and Asia have seen vast increases in the number of managed beehives [(Madina Tussupov, 2025)](https://earth.org/data_visualization/bees-are-not-declining-everywhere-a-global-perspective-on-population-trends/). However this is the trend we are seeing here in this country, and there are many factors that have contributed to this. Some examples would be rapid human expansion resulting in the destruction of important habitats, the deaths of colonies due to pesticides and invasive plant species driving out native fauna bees rely on. Bees play a critical role in the ecological well being of our entire planet. What I want to understand about this trend is more from a spatial perspective. Can we identify changes in bee populations by looking for changes in clustering across time? Are there places where bees used to be found where they aren't any longer? 
+
+To be more specific, I want to ask the question "for the periods of time 2000-2009, 2010-2019 and 2020-2024, are the spatial distributions of bee occurrences the same? If not, how do they differ?". I will be asking this question with the study area being the state of Maryland. This is due to that state having the healthiest amount of data across this time span in this data set. 
+
+# Question 2. 
+
+**From where did you obtain the data you will use to answer your research question? Please provide a link I can follow, if possible.**
+
+The data I acquired comes from the Global Biodiversity Information Facility (GBIF). 
+
+> GBIF—the Global Biodiversity Information Facility—is an international network and data infrastructure funded by the world's governments and aimed at providing anyone, anywhere, open access to data about all types of life on Earth.
+
+The dataset I'm working with specifically is [Insect Species Occurrence Data from Multiple Projects Worldwide with Focus on Bees and Wasps in North America](https://www.gbif.org/dataset/f519367d-6b9d-411c-b319-99424741e7de). It contains an enormous amount of species occurrence records for "native and non-native bees, wasps and other insects". These data were collected using a variety of methods such as pan, malaise and vane trapping. Of note here is the "purpose" section from their documentation.
+
+> These specimen-based bee species occurrence records for insects trapped and collected in the non-contiguous United States, U.S. Territories and Minor Outlying Islands, Canada, and Mexico, represent baseline bee species occurrences. Absence of bee species from this dataset does not indicate absence of the species from the collecting location. Number of times a species is recorded in this dataset does not represent actual species abundance or common-ness but does offer an indication of fluctuations in population size.
+
+This will influence what kind of questions I can realistically answer using this data.
+
+# Question 3. 
+
+**How many observations does your data set have?**
+
+The overall dataset has approximately $580k$ rows, however that includes rows unrelated to bees. About $520k$ rows remain when we filter for only bees and those with coordinates. When looking at the data in Maryland only we drop down to around $190k$ rows. Each row represents an individual species occurrence at a given location and time. 
+
+# Question 4. 
+
+**Are you merging multiple data sets?**
+
+Nope.
+
+# Question 5. 
+
+**Provide a table listing each variable you are considering for analysis, briefly describe each variable (e.g., the number of disease cases in each region), and the variable type (e.g., numeric, factor, date, etc.).**
+
+|Variable|Data Type|Description|
+|---|---|---|
+|long/lat|Point Process Data|Exact location of occurrence with some degree of imprecision.|
+|locality|Areal Data|General location of occurrence.|
+|Decade|Categorical|Decade of occurrence. 2000s, 2010s, 2020s. Will be used as a case/control. |
+
+# Question 6. 
+
+**What will your response variable be for answering the research question(s)?**
+
+I don't believe there really is one in this case. I'm comparing the distribution of these decades but I'm not necessarily modeling anything.
+
+# Question 7. 
+
+**Provide relevant exploratory plots of your data.**
+
+I'm not 100% sure how many exploratory plots I can even provide for this data. 
+
+```{r, echo=FALSE}
+sf_bees <- st_as_sf(df, coords = c("decimalLongitude", "decimalLatitude"))
+maryland <- st_as_sf(maps::map("state", region=c('maryland'), plot = FALSE, fill = TRUE))
+sf::st_crs(sf_bees) <- sf::st_crs(maryland)
+
+ggplot() +
+    geom_sf(data = maryland, fill = "white", color = "gray40") + # Plot the maryland borders
+    geom_sf(data = sf_bees, aes(color=as.factor(decade)), alpha = 0.3, pch=21, size = 1) + # plot the BEEEEES
+    theme_minimal() +
+    labs(
+        title = "Bee Observations Across Maryland",
+        color = "Decade"
+    )
+```
+
+**NOTE:** For points outside of the bounds it is either a data quality issue or a problem with coordinate reference systems while matching stuff to the coordinates the `maps` package uses. If it is a data quality issue those points will be removed. 
+
+We can also see that the 2010s shows a TON of occurrences in areas that the 2000s and 2020s never touch. As such I may limit the study area to specific localities of Maryland that have been consistently studied across the time frame of this dataset. 
+
+```{r, echo=FALSE}
+n_by_year <- df %>% group_by(year) %>% count()
+
+ggplot(n_by_year, aes(x=year, y=n)) +
+    geom_line(color = "blue") +
+    geom_point() +
+    theme_minimal() +
+    labs(
+        title = "Number of Occurrences by Year",
+        x = "",
+        y = "Frequency"
+    )
+```
+
+Here we see an enormous spike in occurrences in 2015. I'm not exactly sure on the exact reasoning for this, but I'll need to account for how unbalanced the decades are in my analysis. Stratified sampling or forcing an even split across the decades will be my approach.
+
+
+# Question 8. 
+
+**What methods do you plan to use to answer your question of interest?**
+
+I plan to treat this analysis as a case/control problem. I have 3 "decades" here (2020s aren't done yet) but in a sense I would be treating, for example, the 2000s as the case and 2010s as the controls. I would do this comparison across the 3 different combinations of decades. I would conveniently ignore temporal autocorrelation here for the sake of simplicity. We can use spacial scan methods to see if a certain decade shows more clustering of bee occurrences in specific areas than the other. One alternative strategy as well is to have some sort of cutoff. Are bee occurrences after, say, 2015, spatially distributed differently than they were before the cutoff? This would be a more clear case/control problem.  
+
+I can treat this either as a regional or point process, though regional would require additional data processing.
+
+The dataset itself is extremely large, so I would likely take a stratified random sample of the data to perform this analysis. Perhaps 500 rows total or so. 
