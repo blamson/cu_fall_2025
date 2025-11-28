@@ -1,0 +1,2 @@
+  centroid_x centroid_y radius events cases ex   rr stat     p
+1   194053.8   200708.1  683.9      2     2  0 82.3  8.7 0.215
