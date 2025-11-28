@@ -1,0 +1,128 @@
+> qnn_adren <- family_qnn_test(df, families[1])
+1 has been selected as the case group
+Q nearest neighbors test
+
+case label:  1 
+control label:  0 
+
+Summary of observed test statistics
+
+   q    Tq pvalue
+  25  5737  0.005
+  50 10496  0.005
+  75 14896  0.005
+ 100 18809  0.005
+
+Summary of observed contrasts between test statistics
+
+   contrast Tcontrast pvalue
+  T50 - T25      4759  0.005
+  T75 - T25      9159  0.005
+ T100 - T25     13072  0.005
+  T75 - T50      4400  0.005
+ T100 - T50      8313  0.180
+ T100 - T75      3913  0.870
+Warning message:
+14 points were rejected as lying outside the specified window 
+
+
+> qnn_ap <- family_qnn_test(df, families[2])
+1 has been selected as the case group
+Q nearest neighbors test
+
+case label:  1 
+control label:  0 
+
+Summary of observed test statistics
+
+   q    Tq pvalue
+  25  4993  0.005
+  50  9549  0.005
+  75 14195  0.005
+ 100 18389  0.005
+
+Summary of observed contrasts between test statistics
+
+   contrast Tcontrast pvalue
+  T50 - T25      4556  0.005
+  T75 - T25      9202  0.005
+ T100 - T25     13396  0.005
+  T75 - T50      4646  0.005
+ T100 - T50      8840  0.005
+ T100 - T75      4194  0.380
+Warning message:
+14 points were rejected as lying outside the specified window 
+
+
+# HALICTIDAE RESULTS ---------------
+
+> qnn_halict <- family_qnn_test(df, families[3])
+1 has been selected as the case group
+Q nearest neighbors test
+
+case label:  1 
+control label:  0 
+
+Summary of observed test statistics
+
+   q    Tq pvalue
+  25  4688  0.005
+  50  8734  0.005
+  75 12398  0.490
+ 100 16574  0.410
+
+Summary of observed contrasts between test statistics
+
+   contrast Tcontrast pvalue
+  T50 - T25      4046  0.785
+  T75 - T25      7710  1.000
+ T100 - T25     11886  0.985
+  T75 - T50      3664  1.000
+ T100 - T50      7840  0.975
+ T100 - T75      4176  0.335
+Warning message:
+14 points were rejected as lying outside the specified window 
+
+
+> qnn_halict <- family_qnn_test(df, families[3])
+1 has been selected as the case group
+Q nearest neighbors test
+
+case label:  1 
+control label:  0 
+
+Summary of observed test statistics
+
+  q   Tq pvalue
+ 20 3773  0.005
+ 25 4688  0.005
+ 30 5590  0.005
+ 35 6463  0.005
+ 40 7324  0.005
+ 45 8032  0.005
+ 50 8734  0.010
+
+Summary of observed contrasts between test statistics
+
+  contrast Tcontrast pvalue
+ T25 - T20       915  0.005
+ T30 - T20      1817  0.005
+ T35 - T20      2690  0.010
+ T40 - T20      3551  0.010
+ T45 - T20      4259  0.095
+ T50 - T20      4961  0.475
+ T30 - T25       902  0.025
+ T35 - T25      1775  0.020
+ T40 - T25      2636  0.030
+ T45 - T25      3344  0.365
+ T50 - T25      4046  0.825
+ T35 - T30       873  0.135
+ T40 - T30      1734  0.105
+ T45 - T30      2442  0.680
+ T50 - T30      3144  0.955
+ T40 - T35       861  0.180
+ T45 - T35      1569  0.890
+ T50 - T35      2271  0.995
+ T45 - T40       708  1.000
+ T50 - T40      1410  1.000
+ T50 - T45       702  1.000

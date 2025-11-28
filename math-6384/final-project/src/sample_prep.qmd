@@ -54,8 +54,11 @@ Let's force 500 rows per decade here. We have plenty of data for that.
 ```{r}
 set.seed(100)
 bees_sampled <- sf_bees %>%
-    filter(!is.na(locality)) %>%
-    group_by(decade) %>%
+    filter(
+        (!is.na(locality)) &
+        !(family %in% c("Colletidae", "Melittidae", "Megachilidae"))
+    ) %>%
+    group_by(family) %>%
     dplyr::slice_sample(n=500)
 ```
 
@@ -64,7 +67,7 @@ Plot one more time.
 ```{r}
 ggplot() +
     geom_sf(data = maryland, fill = "white", color = "gray40") + # Plot the maryland borders
-    geom_sf(data = bees_sampled, aes(color=as.factor(decade)), alpha = 0.3, pch=21, size = 1) + # plot the BEEEEES
+    geom_sf(data = bees_sampled, aes(color=as.factor(family)), alpha = 0.3, pch=21, size = 1) + # plot the BEEEEES
     theme_minimal() +
     labs(
         title = "Bee Observations Across Maryland",
