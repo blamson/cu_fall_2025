@@ -54,3 +54,42 @@ plot_scan_cluster(scan_ap, state=maryland, family_name = families[2])
 plot_scan_cluster(scan_collet, state=maryland, family_name = families[3])
 plot_scan_cluster(scan_halict, state=maryland, family_name = families[4])
 plot_scan_cluster(scan_mega, state=maryland, family_name = families[5])
+
+
+
+
+
+# GRADIENT CONTOUR PLOTS
+# 2010s -----
+file_path <- "final-project/data/d10-point-envelopes.rda"
+if (!file.exists(file_path)) {
+  d10_envelopes = logrr(pp, sigma = d10_sigma, case = "2010",
+                  nsim = 499, level = 0.95)
+  save(d10_envelopes, file = file_path)
+}
+load(file_path)
+
+grad = gradient.color.scale(
+    min(d10_envelopes$v, na.rm = TRUE),
+    max(d10_envelopes$v, na.rm = TRUE)
+)
+
+plot(d10_envelopes, col = grad$col, breaks = grad$breaks, main="Tolerance envelope contour plot - 2010s vs other decades")
+plot(md_window, add=TRUE)
+
+# 2020s -------
+file_path <- "final-project/data/d20-point-envelopes.rda"
+if (!file.exists(file_path)) {
+  d20_envelopes = logrr(pp, sigma = d20_sigma, case = "2020",
+                  nsim = 499, level = 0.95)
+  save(d20_envelopes, file = file_path)
+}
+load(file_path)
+
+grad = gradient.color.scale(
+    min(d20_envelopes$v, na.rm = TRUE),
+    max(d20_envelopes$v, na.rm = TRUE)
+)
+
+plot(d20_envelopes, col = grad$col, breaks = grad$breaks, main="Tolerance envelope contour plot - 2020s vs other decades")
+plot(md_window, add=TRUE)

@@ -81,6 +81,8 @@ I'm not 100% sure how many exploratory plots I can even provide for this data.
 sf_bees <- st_as_sf(df, coords = c("decimalLongitude", "decimalLatitude"))
 maryland <- st_as_sf(maps::map("state", region=c('maryland'), plot = FALSE, fill = TRUE))
 sf::st_crs(sf_bees) <- sf::st_crs(maryland)
+sf_bees <- st_transform(sf_bees, 6487)
+maryland <- st_transform(maryland, 6487)
 
 ggplot() +
     geom_sf(data = maryland, fill = "white", color = "gray40") + # Plot the maryland borders
@@ -122,3 +124,22 @@ I plan to treat this analysis as a case/control problem. I have 3 "decades" here
 I can treat this either as a regional or point process, though regional would require additional data processing.
 
 The dataset itself is extremely large, so I would likely take a stratified random sample of the data to perform this analysis. Perhaps 500 rows total or so. 
+
+# Additional exploration
+
+```{r}
+df %>%
+  group_by(gbifID) %>%
+  count() %>%
+  arrange(desc(n))
+```
+
+One occurrence ID per row...
+One gbifID per row...
+
+These seem to be equivalent. Drop occurrence ID. 
+
+
+```{r}
+df
+```

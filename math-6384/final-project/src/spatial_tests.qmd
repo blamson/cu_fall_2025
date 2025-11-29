@@ -1,0 +1,33 @@
+
+```{r, message=FALSE, results=FALSE, warning=FALSE, echo=FALSE}
+packages <- c("spatstat", "pbapply", "smacpod", "readr", "dplyr", "tidyr", "here", "sf", "smerc", "spdep", "ggplot2", "maps")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# options(scipen=9999)
+```
+
+```{r}
+df <- sf::read_sf("final-project/data/maryland_bee_sample.gpkg") %>%
+    mutate(decade = as.factor(decade)) %>%
+    mutate(year = as.factor(year)) %>%
+    mutate(family = as.factor(family))
+```
+
+```{r}
+# scan = spscan.test(trees, nsim = 199, alpha = 0.10, case = "oak", cl=4)
+# smacpod::spscan.test(df)
+```
+
+
+```{r}
+maryland <- st_as_sf(maps::map("state", region=c('maryland'), plot = FALSE, fill = TRUE))
+st_transform(maryland, 6487)
+
+df <- st_transform(df, 6487)
+```

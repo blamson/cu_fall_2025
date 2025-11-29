@@ -39,9 +39,9 @@ ggplot() +
 df <- df %>%
   mutate(family_andrenidae = if_else(family == "Andrenidae", 1, 0)) %>%
   mutate(family_apidae = if_else(family == "Apidae", 1, 0)) %>%
-  mutate(family_colletidae = if_else(family == "Colletidae", 1, 0)) %>%
+  # mutate(family_colletidae = if_else(family == "Colletidae", 1, 0)) %>%
   mutate(family_halictidae = if_else(family == "Halictidae", 1, 0)) %>%
-  mutate(family_megachilidae = if_else(family == "Megachilidae", 1, 0)) %>%
+  # mutate(family_megachilidae = if_else(family == "Megachilidae", 1, 0)) %>%
   mutate(geom = st_jitter(geom))
 
 family_scan_test <- function(df, family) {
@@ -67,9 +67,9 @@ families <- levels(df$family)
 # Scans
 scan_adren <- family_scan_test(df, families[1])
 scan_ap <- family_scan_test(df, families[2])
-scan_collet <- family_scan_test(df, families[3])
-scan_halict <- family_scan_test(df, families[4])
-scan_mega <- family_scan_test(df, families[5])
+# scan_collet <- family_scan_test(df, families[3])
+scan_halict <- family_scan_test(df, families[3])
+# scan_mega <- family_scan_test(df, families[5])
 
 # Some helper functions
 relabel_scans <- function(scan, familyname) {
@@ -95,6 +95,10 @@ relabel_and_plot <- function(scan, familyname) {
 
 relabel_and_plot(scan_adren, families[1])
 relabel_and_plot(scan_ap, families[2])
-relabel_and_plot(scan_collet, families[3])
-relabel_and_plot(scan_halict, families[4])
-relabel_and_plot(scan_mega, families[5])
+# relabel_and_plot(scan_collet, families[3])
+relabel_and_plot(scan_halict, families[3])
+# relabel_and_plot(scan_mega, families[5])
+
+summary(scan_adren)
+summary(scan_ap)
+summary(scan_halict)

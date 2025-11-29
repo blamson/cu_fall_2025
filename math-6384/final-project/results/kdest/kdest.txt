@@ -1,0 +1,42 @@
+
+# 2000s vs 2010s
+Diggle and Chetwynd (1991) test for difference in K functions
+
+KD(r) = K_case(r) - K_control(r)
+case label:  2000 
+control label:  2010
+
+null hypothesis: KD(r) = 0 for all r between 0 and 50921.74 
+alternative hypothesis: KD(r) > 0 for at least one r between 0 and 50921.74 
+test statistic: 3291.374 
+p-value: 0.005 
+nsim: 199 
+simulation procedure: random labeling
+
+
+# 2000s vs 2020s
+Diggle and Chetwynd (1991) test for difference in K functions
+
+KD(r) = K_case(r) - K_control(r)
+case label:  2000 
+control label:  2020 
+
+null hypothesis: KD(r) = 0 for all r between 0 and 50921.74 
+alternative hypothesis: KD(r) > 0 for at least one r between 0 and 50921.74 
+test statistic: 2386.345 
+p-value: 0.005 
+nsim: 199 
+simulation procedure: random labeling
+
+
+# 2010s vs 2020s
+KD(r) = K_case(r) - K_control(r)
+case label:  2010 
+control label:  2000 2020 
+
+null hypothesis: KD(r) = 0 for all r between 0 and 50921.74 
+alternative hypothesis: KD(r) > 0 for at least one r between 0 and 50921.74 
+test statistic: -1294.196 
+p-value: 1 
+nsim: 199 
+simulation procedure: random labeling

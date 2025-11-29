@@ -33,6 +33,8 @@ maryland <- st_transform(maryland, 6487)
 sf_bees <- st_as_sf(df, coords = c("decimalLongitude", "decimalLatitude"))
 st_crs(sf_bees) <- 4326
 sf_bees <- st_transform(sf_bees, 6487)
+sf_bees <- sf_bees %>%
+    mutate(geometry = st_jitter(geometry))
 ```
 
 ```{r, echo=FALSE}
@@ -47,7 +49,29 @@ ggplot() +
     )
 ```
 
-# Try a random sample
+# Create random sample stratified by decade
+
+```{r}
+set.seed(100)
+decade_sample <- sf_bees %>%
+    filter(!is.na(locality)) %>% # just to ditch some probably bad data
+    select(c("gbifID", "year", "decade", "geometry")) %>%
+    group_by(decade) %>%
+    dplyr::slice_sample(n=500)
+
+ggplot() +
+    geom_sf(data = maryland, fill = "white", color = "gray40") + # Plot the maryland borders
+    geom_sf(data = decade_sample, aes(color=as.factor(decade)), alpha = 0.3, pch=21, size = 1) + # plot the BEEEEES
+    theme_minimal() +
+    labs(
+        title = "Bee Observations Across Maryland",
+        color = "Decade"
+    )
+
+sf::st_write(decade_sample, "final-project/data/maryland_bee_decade_rs.gpkg")
+```
+
+# Create random sample stratified by family
 
 Let's force 500 rows per decade here. We have plenty of data for that. 
 
@@ -85,5 +109,5 @@ bees_sampled <- bees_sampled %>%
 # Write Dataset
 
 ```{r}
-sf::st_write(bees_sampled, "final-project/data/maryland_bee_sample.gpkg")
+sf::st_write(bees_sampled, "final-project/data/maryland_bee_family_rs.gpkg")
 ```
