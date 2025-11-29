@@ -144,6 +144,8 @@ legend("topleft", legend = c("obs", "avg", "max/min env", "95% env"),
        lty = c(1, 2, 1, 2), col = c("black", "red", "darkgrey", "lightgrey"),
        lwd = c(1, 1, 10, 10))
 
+kdplus.test(d00_d20_kdenv)
+
 # 2010s vs 2020s
 file_path <- "final-project/data/d10-d20-kdenv.rda"
 if (!file.exists(file_path)) {
@@ -157,3 +159,5 @@ plot(d10_d20_kdenv, ylab = "difference in K functions", legend=F, main="2010s vs
 legend("topleft", legend = c("obs", "avg", "max/min env", "95% env"),
        lty = c(1, 2, 1, 2), col = c("black", "red", "darkgrey", "lightgrey"),
        lwd = c(1, 1, 10, 10))
+
+kdplus.test(d10_d20_kdenv)
