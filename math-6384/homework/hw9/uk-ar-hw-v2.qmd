@@ -1,0 +1,163 @@
+---
+title: "Hw09 - Universal Kriging/Autoregressive Homework"
+format: html
+self-contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 1 (Autoregressive modeling)
+
+The file `penn_spdf.rda` contains an `sf` `data.frame` related to lung cancer deaths for 67 Pennsylvania counties in 2002.  The data are simplified from the `pennLC` data available in the **SpatialEpi** package.  The data frame includes the variables:
+
+* `cases`: the number of lung cancer cases in the county
+* `pop`: the county population of the counties
+* `rate`: the lung cancer rate (`cases`/`pop`)
+* `smoking`: the proportion of the population that smokes.
+
+```{r, include = FALSE}
+# load("homework/hw9/penn_sfdf.rda")
+load("penn_sfdf.rda")
+
+packages <- c("readr", "dplyr", "tidyr", "here", "sf", "smerc", "spdep", "ggplot2", "maps")
+
+for (pkg in packages) {
+  if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cran.rstudio.com/")
+    library(pkg, character.only = TRUE)
+  }
+}
+```
+
+## (a)
+
+Create a choropleth map of lung cancer `rate`.
+
+**Solution**
+
+```{r}
+cancer_rate <- penn_sfdf[, c("rate", "geometry")]
+plot(cancer_rate, pal=hcl.colors, main="Cancer rate per county")
+```
+
+## (b)
+
+Create a choropleth map of `smoking`.
+
+**Solution**
+
+```{r}
+smoking_prop <- penn_sfdf[, c("smoking", "geometry")]
+plot(smoking_prop, pal=hcl.colors, main="Smoking proportions per county")
+```
+
+## (c)
+
+Does there appear to be evidence of clustering of lung cancer rate/smoking in the individual maps?  Are there similar patterns in the two maps?
+
+**Solution**
+
+There appears to be less evidence of an overlap than I was expecting actually. Smoking proportions are highest in the upper west and middle north parts of the state. There's also a high proportion in a tiny little county in the south-east. 
+
+The highest cancer rates are found near those counties, but not exclusively. And many of the higher smoking proportion counties are very middle of the road for cancer rates. 
+
+## (d)
+
+Describe what is occurring in the code below.
+
+```{r}
+library(spdep)
+pennnb = spdep::poly2nb(penn_sfdf)
+pennwb <- nb2listw(pennnb, style = "B")
+pennws <- nb2listw(pennnb, style = "W")
+```
+
+**Solution**
+
+This code is generating two different county adjacency objects. 
+
+The first is a binary object, it tracks which neighbors every county has and provides a weight of 1 for said neighbors. 
+
+The second is nearly identical but the weights are normalized such that they add up to 1 for each county. So a county with 3 neighbors would have weights of 1/3, 1/3, 1/3 for those neighbors. 
+
+This is simply a more robust version of the adjacency matrix that we made in a previous homework. 
+
+## (e)
+
+The code below runs 8 different linear model-based Moran's I tests for global spatial autocorrelation. The fitted linear models used include:
+
+* no covariates (just an intercept)
+* no covariates while adjusting the residual weights to be related to population size.
+* the smoking covariate
+* the smoking covariate while adjusting the residual weights to be related to population size.
+
+The Moran's I test was run for each model with both binary and row-standardized spatial weights matrices. The results are summarized in the table below.
+
+|covariates | residual weights | spatial weights| p-value |
+|---|---|---|---|
+| none |  equal | binary| 0.11 |
+| none |  `pop` |  binary| 0.0004|
+| `smoking` | equal |   binary| 0.26 |
+| `smoking` | `pop` |  binary| 0.01 |
+| none |  equal | row-standardized | 0.12 |
+| none |  `pop` | row-standardized | 0.0005|
+| `smoking` | equal |  row-standardized | 0.244 |
+| `smoking` | `pop` | row-standardized | 0.007 |
+
+Does weighting the residuals affect the results? Do the covariates included affect the results? Does the spatial weights matrices used affect the results?
+
+```{r}
+# evaluate evidence for spatial dependence based on whether
+# covariates are included and heterogeneous weights are accounted for
+pennlm1 = lm(rate ~ 1, data = penn_sfdf)
+pennlm2 = lm(rate ~ 1, data = penn_sfdf, weights = pop)
+pennlm3 = lm(rate ~ smoking, data = penn_sfdf)
+pennlm4 = lm(rate ~ smoking, data = penn_sfdf, weights = pop)
+
+lm.morantest(pennlm1, pennwb)
+lm.morantest(pennlm2, pennwb)
+lm.morantest(pennlm3, pennwb)
+lm.morantest(pennlm4, pennwb)
+lm.morantest(pennlm1, pennws)
+lm.morantest(pennlm2, pennws)
+lm.morantest(pennlm3, pennws)
+lm.morantest(pennlm4, pennws)
+```
+
+**Solution**
+
+1. Does weighting the residuals have an effect?
+    - It has a pretty huge effect, yeah. When we look at the model with equal residual weights and compare it to the equivalent model with population scaled residual weights there is a drastic difference in p-values. The equal residual weights models all fail to reject the null whereas all of the population scaled ones do reject the null. So this difference results in entirely different conclusions. 
+2. Do the included covariates have an effect?
+    - We definitely see an effect here. Going from no covariates to including smoking changes the resulting p-value quite a bit. As one example, from 0.11 to 0.26. All other instances of this also show an increase in the p-value to a similar degree. 
+3. Does the spatial weights matrix have an effect? 
+    - This one seems to not be having much of an impact at all. The models with equivalent setups but different spatial weights all have nearly equivalent results. 
+
+## (f)
+
+Why is it appropriate to adjust the weights of the residuals to be related to the population size of each county? What do these weights imply about the variance associated with each county (see the Details section of the `lm` documentation).
+
+**Solution**
+
+## (g) 
+
+Why would you use a row-standardized spatial weights matrix instead of a binary spatial weights matrix?
+
+**Solution**
+
+## (h)
+
+Construct one-parameter SAR models using `rate` as the response and `smoking` as a covariate scaling the residual error variances by a constant related to the inverse of the population size of each region and using a row-standardized spatial proximity matrix.
+
+Provide a table with rows for the `Intercept` term, the `smoking` variable, and the $\rho$ parameter. The columns of the table should be the estimated value, the estimated standard error of the estimated value, and the p-value (for testing whether the parameter differs parameter from zero).
+
+**Solution**
+
+## (i)
+
+Is there evidence of residual spatial autocorrelation for the SAR model fit in the previous problem? Why?
+
+**Solution**
+
