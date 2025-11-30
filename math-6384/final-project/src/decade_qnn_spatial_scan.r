@@ -46,7 +46,7 @@ plot(
   border="blue", 
   pch = c(2, 3, 4), 
   cols=c("blue", "black", "red"),
-  main="Spatial scan results - 2000s"
+  main="Spatial scan results"
 )
 
 plot(
@@ -54,7 +54,7 @@ plot(
   border="black", 
   pch = c(2, 3, 4), 
   cols=c("blue", "black", "red"),
-  main="Spatial scan results - 2010s",
+  main="Spatial scan results",
   add=TRUE
 )
 
@@ -63,6 +63,6 @@ plot(
   border="red", 
   pch = c(2, 3, 4), 
   cols=c("blue", "black", "red"),
-  main="Spatial scan results - 2020s",
+  main="Spatial scan results",
   add=TRUE
 )

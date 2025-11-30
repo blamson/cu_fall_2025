@@ -1,0 +1,32 @@
+\documentclass{cubeamer}
+
+\usepackage{minted}   % requires -shell-escape
+
+% This disables section/subsection title pages by overriding the .cls functionality.
+\AtBeginSection{}
+\AtBeginSubsection{}
+
+\title{Spatial Analysis of Maryland Bee Observations}
+\subtitle{MATH 6384 - Spatial Data Analysis}
+\author[Brady Lamson]{Brady Lamson}
+\date{\today} % or whatever the date you are presenting in is
+\institute[University of Colorado Denver]{College of Letters Arts and Sciences}
+% \copyrightnotice{Published by the American Institute of Aeronautics and Astronautics, Inc., with permission}
+
+\begin{document}
+
+\maketitle
+
+% \cutoc
+
+\input{background.tex}
+\input{data.tex}
+\input{eda.tex}
+\input{results.tex}
+\input{conclusions.tex}
+
+\appendix
+
+% \input{backup.tex}
+
+\end{document}
