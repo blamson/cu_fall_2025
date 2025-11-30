@@ -1,0 +1,9 @@
+# LaTeX files
+*.nav
+*.out
+*.snm
+*.toc
+*.aux
+*.vrb
+*.log
+_minted/
