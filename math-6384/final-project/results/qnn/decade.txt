@@ -1,0 +1,74 @@
+case label:  2000 
+control label:  2010 2020 
+
+Summary of observed test statistics
+
+   q    Tq pvalue
+ 100 28970  0.005
+ 150 38288  0.005
+ 200 46952  0.005
+ 250 55314  0.005
+
+Summary of observed contrasts between test statistics
+
+    contrast Tcontrast pvalue
+ T150 - T100      9318  0.005
+ T200 - T100     17982  0.005
+ T250 - T100     26344  0.015
+ T200 - T150      8664  0.110
+ T250 - T150     17026  0.175
+ T250 - T200      8362  0.470
+
+
+
+ # 2010s
+
+ case label:  2010 
+control label:  2000 2020 
+
+Summary of observed test statistics
+
+  q    Tq pvalue
+ 25  7815  0.005
+ 40 10993  0.005
+ 55 13419  0.005
+ 70 15660  0.005
+
+Summary of observed contrasts between test statistics
+
+  contrast Tcontrast pvalue
+ T40 - T25      3178  0.005
+ T55 - T25      5604  0.005
+ T70 - T25      7845  0.010
+ T55 - T40      2426  0.765
+ T70 - T40      4667  0.980
+ T70 - T55      2241  0.990
+
+
+# 2020s
+
+case label:  2020 
+control label:  2000 2010 
+
+Summary of observed test statistics
+
+   q    Tq pvalue
+ 150 45501  0.005
+ 175 49994  0.005
+ 200 55570  0.005
+ 225 60352  0.005
+ 250 62476  0.005
+
+Summary of observed contrasts between test statistics
+
+    contrast Tcontrast pvalue
+ T175 - T150      4493  0.020
+ T200 - T150     10069  0.005
+ T225 - T150     14851  0.005
+ T250 - T150     16975  0.255
+ T200 - T175      5576  0.005
+ T225 - T175     10358  0.005
+ T250 - T175     12482  0.495
+ T225 - T200      4782  0.005
+ T250 - T200      6906  1.000
+ T250 - T225      2124  1.000
