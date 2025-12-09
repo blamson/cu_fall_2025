@@ -71,7 +71,7 @@ grad = gradient.color.scale(
     max(d00_d10_envelopes$v, na.rm = TRUE)
 )
 
-par(mar = c(0, 1, 0, 1.25))  # bottom, left, top, right
+# par(mar = c(0, 1, 0, 1.25))  # bottom, left, top, right
 # par(reset = TRUE)
 plot(d00_d10_envelopes, col = grad$col, breaks = grad$breaks, main="2000s vs 2010s", asp=5)
 plot(md_window, add=TRUE)

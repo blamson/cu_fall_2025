@@ -68,7 +68,7 @@ ggplot() +
         color = "Decade"
     )
 
-sf::st_write(decade_sample, "final-project/data/maryland_bee_decade_rs.gpkg")
+# sf::st_write(decade_sample, "final-project/data/maryland_bee_decade_rs.gpkg")
 ```
 
 # Create random sample stratified by family
