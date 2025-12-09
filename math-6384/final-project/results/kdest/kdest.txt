@@ -40,3 +40,21 @@ test statistic: -1294.196
 p-value: 1 
 nsim: 199 
 simulation procedure: random labeling
+
+
+Summary output of kdenv objects
+-----
+> summary(d00_d10_kdenv)
+KD(r) > upper envelope limit for the following r:
+198.913 to 50921.74 
+-----
+> summary(d00_d20_kdenv)
+KD(r) > upper envelope limit for the following r:
+8752.173 to 50921.74 
+KD(r) < lower envelope limit for the following r:
+99.45652 to 6464.674 
+-----
+> summary(d10_d20_kdenv)
+KD(r) < lower envelope limit for the following r:
+99.45652 to 17305.43 
+43959.78 to 45451.63 

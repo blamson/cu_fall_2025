@@ -24,7 +24,7 @@ maryland <- st_transform(maryland, 6487)
 
 ggplot() +
     geom_sf(data = maryland, fill = "white", color = "gray40") + 
-    geom_sf(data = df, aes(color=as.factor(decade)), alpha = 0.5, pch=23, size = 1.5) + 
+    geom_sf(data = df, aes(color=as.factor(decade)), alpha = 0.7, pch=23, size = 1.5) + 
     theme_minimal() +
     labs(
         title = "Bee Observations Across Maryland",

@@ -74,6 +74,33 @@ The general takeaway here is that all three decades show about the same degree o
     \label{fig:example}%
 \end{figure}
 
-These k-function plots in Figure 5 show some very interesting results. The first plot shows evidence of the 2000s being clustered relative to the 2010s at all chosen spatial scales. 
+\input{tables/k-func-diff}
 
-% TODO: CREATE TABLE OF KDEST RESULTS.TXT THAT SHOW THE TEST RESULTS COMPARING THESE THINGS
+The k-function results show more evidence of the differences between these decades. I will be referring to the summary output not listed here for exact ranges. Of note that $r$ values listed are in meters. Starting from the top, we see $KD(r)$ being larger than the upper envelope limit from 199 to 50921 meters. So there is evidence of clustering of the 2000s relative to the 2010s for nearly the entire range of spatial scales examined. We see similar results comparing the 2000s to the 2020s, though the 2020s appear to potentially show more clustering in the lower spatial scales from 99 to 6464 meters. The 2000s pull ahead from 8752 to 50921 meters. Lastly and most interestingly, the 2020s show clustering relative to the 2010s from 99 to 17305 meters before they both start to behave similarly for the rest of the spatial scales. 
+
+I think what is so interesting here is how pronounced the difference is between the 2000s and the other two decades when the 2010s and 2020s show such similar clustering behaviors at most of the spatial scales tested. I believe this is related to both of those decades branching out away from the central location that the 2000s lies in. The 2000s are far more concentrated in their occurrences, explaining the large scale of clustering seen here. Again though, it is difficult to ascertain the exact reason for the change of spatial patterns here. I think it is tempting to assume this is due to bees being forced to branch away from the main cluster due to environmental factors, but this is also easily explained by a branching out in research locations as more people get involved. 
+
+\subsection*{Q Nearest Neighbors}
+
+\input{tables/qnn}
+
+Q nearest neighbor tests were ran as another way to gauge what kind of clustering each decade exhibits. The goal here was to examine at what neighbor counts the clustering began to break down. The approach here was different to the previous tests. Whereas previous sections were direct comparisons between decades, using one as the case and another as the control, here we use the two non-case decades as the controls. This was done for practical reasons, as doing the direct decade comparisons would require separate qnn tests for both controls across all 3 cases. We can't rely on the bidirectional interpretation the other tests provide us here. This does hinder the transfer of interpretation to previous tests in this case, as the qnn tests compare against different distributions than they would using the direct comparison method. 
+
+Regardless, Table 2 shows the test statistic contrast results. What's important about these tables is precisely at what points the p-values become large. What we see from the 2000s is that up to 150 nearest neighbors, there are more cases than would be expected under the random labeling hypothesis. This is no longer the case somewhere up to 200 nearest neighbors, where any clustering is mostly explained by the prior threshold. The 2010s in comparison see this breakdown much sooner, only having more cases than expected for up to 40 neighbors. The 2020s actually show the largest values of the decades, showing more cases than expected up to 225 neighbors. This result is surprising when we compare it to the difference in k-function results, and may be a symptom of the problems that arise from the inconsistency in methodology here. 
+
+\subsection*{Spatial Scan Results}
+
+\input{tables/spatial-scan}
+
+\begin{figure}[ht!]%
+    \centering
+    \includegraphics[width=0.8\columnwidth]{../images/spatial-scan.png}
+    \caption{Spatial Scan Clusters by Decade}%
+    %\label{fig:example}%
+\end{figure}
+
+Spatial scan tests were also performed in the same manner as the qnn tests with one decade being the case and the other two functioning as the controls. This is justified using the same logic, though limitations in this strategy are taken into account for interpretation. 
+
+Table 3 I feel provides a lot of insight into what we've been seeing from our previous results. The 2000s has a single likely cluster, and it contains $470/500$ of its points. The radius for this cluster is the largest out of all the others in the table as well. The 2010s and 2020s both show large clusters as well, but alongside many far smaller clusters. We can see the locations of these clusters in Figure 6, though some are not visible due to their small radius and the resolution of the provided image.
+
+The radius doesn't tell the whole story though. When we ignore that and look at cases in each cluster, we see a reinforcement of what was shown in the qnn tests. Both the 2000s and 2020s have clusters with an extremely large number of cases and all of the likely clusters shown in the 2010s have far smaller case counts relative to those. The general trend we've seen overall is that while the 2000s is the most condensed of the decades, the 2010s seems to be the most spread out of the three. The 2020s is more spread out than the 2000s, but still focused primarily on a couple key areas. 
