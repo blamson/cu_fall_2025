@@ -41,14 +41,17 @@ d20 <- which(pp$marks == "2020")
 d00_sigma <- bw.scott(pp[d00, ], isotropic = TRUE)
 d10_sigma <- bw.scott(pp[d10, ], isotropic = TRUE)
 d20_sigma <- bw.scott(pp[d20, ], isotropic = TRUE)
+full_sigma <- bw.scott(pp, isotropic = TRUE)
 
 density_00 <- spdensity(pp[d00, ], sigma = d00_sigma)
 density_10 <- spdensity(pp[d10, ], sigma = d10_sigma)
 density_20 <- spdensity(pp[d20, ], sigma = d20_sigma)
+density_full = spdensity(pp, sigma=full_sigma)
 
 plot(md_window, main="2000s"); contour(density_00, add=TRUE)
 plot(md_window, main="2010s"); contour(density_10, add=TRUE)
 plot(md_window, main="2020s"); contour(density_20, add=TRUE)
+plot(md_window, main="2000-2024"); contour(density_full, add=TRUE)
 
 # Gradient contour plots
 
@@ -68,7 +71,9 @@ grad = gradient.color.scale(
     max(d00_d10_envelopes$v, na.rm = TRUE)
 )
 
-plot(d00_d10_envelopes, col = grad$col, breaks = grad$breaks, main="Tolerance envelope contour plot - 2000s vs 2010s")
+par(mar = c(0, 1, 0, 1.25))  # bottom, left, top, right
+# par(reset = TRUE)
+plot(d00_d10_envelopes, col = grad$col, breaks = grad$breaks, main="2000s vs 2010s", asp=5)
 plot(md_window, add=TRUE)
 
 
@@ -88,7 +93,7 @@ grad = gradient.color.scale(
     max(d00_d20_envelopes$v, na.rm = TRUE)
 )
 
-plot(d00_d20_envelopes, col = grad$col, breaks = grad$breaks, main="Tolerance envelope contour plot - 2000s vs 2020s")
+plot(d00_d20_envelopes, col = grad$col, breaks = grad$breaks, main="2000s vs 2020s")
 plot(md_window, add=TRUE)
 
 
@@ -108,7 +113,7 @@ grad = gradient.color.scale(
     max(d10_d20_envelopes$v, na.rm = TRUE)
 )
 
-plot(d10_d20_envelopes, col = grad$col, breaks = grad$breaks, main="Tolerance envelope contour plot - 2010s vs 2020s")
+plot(d10_d20_envelopes, col = grad$col, breaks = grad$breaks, main="2010s vs 2020s")
 plot(md_window, add=TRUE)
 
 

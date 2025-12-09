@@ -2,12 +2,18 @@
 
 \begin{frame}{Data Source}
     \begin{itemize} 
-        \item UwU
+        \item Data comes from the Global Biodiversity Information Facility (GBIF). 
+        \item The dataset I'm working with specifically is "Insect Species Occurrence Data from Multiple Projects Worldwide with Focus on Bees and Wasps in North America".
+        \item It contains an enormous amount of species occurrence records for "native and non-native bees, wasps and other insects".
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Data Overview}
     \begin{itemize} 
-        \item OwO
+        \item Full dataset contains bee observations both in and out of the USA: $\text{nrow} = 580k$
+        \item Filtered for bees in maryland: $\text{nrow} = 189k$
+        \item Dataset covers observations from 2001 to 2024.
+        \item Stratified sampling performed by decade to get 1500 rows, 500 rows per decade. 
+        \item This data will be treated as point process. 
     \end{itemize}
 \end{frame}

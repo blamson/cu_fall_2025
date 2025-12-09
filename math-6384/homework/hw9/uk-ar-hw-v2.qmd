@@ -2,6 +2,8 @@
 title: "Hw09 - Universal Kriging/Autoregressive Homework"
 format: html
 self-contained: true
+author: Brady Lamson
+date: 12/2/2025
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +23,7 @@ The file `penn_spdf.rda` contains an `sf` `data.frame` related to lung cancer de
 # load("homework/hw9/penn_sfdf.rda")
 load("penn_sfdf.rda")
 
-packages <- c("readr", "dplyr", "tidyr", "here", "sf", "smerc", "spdep", "ggplot2", "maps")
+packages <- c("readr", "dplyr", "tidyr", "here", "sf", "smerc", "spdep", "ggplot2", "maps", "spatialreg")
 
 for (pkg in packages) {
   if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
@@ -141,11 +143,17 @@ Why is it appropriate to adjust the weights of the residuals to be related to th
 
 **Solution**
 
+Lower population county's will have a higher variance for their rate, so having a weight for the population ensures that those lower population rate estimated don't provide as much information as the larger population county's. 
+
+So that kind of answers both questions. The docs for lm indicate that weights are used to indicate that different observations will have different variances which is exactly what we are talking about here. 
+
 ## (g) 
 
 Why would you use a row-standardized spatial weights matrix instead of a binary spatial weights matrix?
 
 **Solution**
+
+The big upside of the row-standardized matrix is that the sum of the row is 1 (given that a region has a neighbor anyway). My hunch is that some maps may have regions with both a small number of neighbors and an extremely large number of them. In situations like that, transforming the values so that everything is on the same scale likely makes some models more well behaved. 
 
 ## (h)
 
@@ -155,9 +163,24 @@ Provide a table with rows for the `Intercept` term, the `smoking` variable, and 
 
 **Solution**
 
+```{r}
+# fit one-parameter SAR model with same covariates
+pennsar <- spautolm(rate ~ smoking,
+                  data = penn_sfdf, listw = pennws, weights=pop)
+
+summary(pennsar)
+```
+
+|Term|Estimate|Std. Error|p-value|
+|---|---|---|---|
+|Intercept|0.00039|0.00012|0.0009|
+|Smoking|0.0019|0.00048|$\approx0$|
+|$\rho$|0.333|0.156|0.044|
+
 ## (i)
 
 Is there evidence of residual spatial autocorrelation for the SAR model fit in the previous problem? Why?
 
 **Solution**
 
+There is significant evidence of residual spatial autocorrelation at the $\alpha = 0.05$ level ($p=0.044$) according to the likelihood ratio test. Though smoking itself is a significant variable at the $\alpha=0.05$ level it does not fully explain the residual spatial autocorrelation. 

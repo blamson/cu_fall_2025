@@ -105,8 +105,10 @@ ggplot(n_by_year, aes(x=year, y=n)) +
     geom_line(color = "blue") +
     geom_point() +
     theme_minimal() +
+    scale_x_continuous(breaks=seq(2000,2024,2), limits=c(2000, 2024)) +
+    # scale_x_discrete(limits=c("2000","2024")) +
     labs(
-        title = "Number of Occurrences by Year",
+        title = "Number of Observations by Year - Full Maryland Dataset",
         x = "",
         y = "Frequency"
     )

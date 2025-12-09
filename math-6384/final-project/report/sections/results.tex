@@ -1,0 +1,79 @@
+\section*{Results}
+
+\subsection*{Data Exploration}
+
+The full dataset contains 586 thousand rows and 50 columns. Each row represents an individual insect occurrence. The columns include information on the specific insect observed, information on the exact location it was observed and then a ton of administrative info about the groups collecting and processing this data. Much of this information is suplerfluous and will not be used in this project. For the insect specific info it gets extremely precise, including the kingdom, phylum, class, order, family and more. On the temporal side of things this dataset contains occurrences dating all the way back to 1964, though there are not many rows from before the year 2000.
+
+\subsubsection*{Filtering and Data Cleaning}
+
+The first thing I did to trim the dataset down was to filter for only bees in the dataset. There are 101 distinct insect families in this dataset with only about 5 of those being bee families. For location, I wanted to perform my analysis at the state level. Checking the various states, Maryland has the healthiest dataset featuring over 190 thousand bee occurrences with coordinates. Other states checked, like Colorado, had far smaller sample sizes, an extremely limited variety of location occurrences and data that did not go back as far as I desired. For Maryland's data I could comfortably go back to the early 2000s and occurrences covered most of the state's map.
+
+Looking at the spatial variables, Maryland data had two problems to fix. First were points labeled as in Maryland that fell far outside the bounds of the state. Second were a ton of overlapping points. Of the roughly 190 thousand occurrences in the data, only about 2747 latitude and longitude combinations were unique. This problem I handled by using the stjitter function from the sf package to add a small amount of random error to the location of every point in the data. From there to address the first problem I simply filtered for the points in the dataset that fell inside of Maryland's boundaries using the stintersects function from the sf package. 
+
+\begin{figure}[ht!]%
+    \centering
+    \includegraphics[width=0.8\columnwidth]{../images/year-freq-plot.png}
+    \caption{Yearly frequency trends}%
+    %\label{fig:example}%
+\end{figure}
+
+Next up was handling unbalanced yearly frequencies in the data. As we can see in figure 1 there is an enormous spike in occurrences from 2013 to 2015. I did not want these years to overpower the results of my analysis so I did two things. First I created a new column, decade, and then I created a stratified random sample of the data using that decade column. By doing this I can give all three decades equal weight in my analysis with some additional benefits. This reduced the size of my dataset substantially which enhanced map readability while also reducing computational complexity. To keep the analysis feasible I gave each decade 500 rows giving me a final dataset of 1500 rows. Below is a map showing the random sample used for this analysis.
+
+\begin{figure}[ht!]%
+    \centering
+    \includegraphics[width=0.8\columnwidth]{../images/decade-map-small.png}
+    \caption{Map of the random sample by decade}%
+    %\label{fig:example}%
+\end{figure}
+
+This plot is included primarily as a point of reference for later results. Due to the overlapping nature of these points it's difficult to identify a ton of trends from just this image alone. A quick look shows the red points representing the 2000s seem to be found only in around 3 spots on the map. The 2010s show a ton of variety in their locations as do the 2020s. 
+
+\subsection*{Spatial Densities by Decade}
+
+Before getting into direct comparisons it is helpful to show each decades contour plots as they will be an invaluable reference point for later visualizations. Each of these contour plots was created using Scott's Rule for bandwidth selection. A separate isotropic bandwidth was chosen for each decade to simplify some downstream computations that will be covered soon. 
+
+\begin{figure}[ht!]%
+    \centering
+    \subfloat[\centering 2000s: sigma=10745]{{\includegraphics[width=0.45\columnwidth]{../images/plot-226.png} }}%
+    \qquad
+    \subfloat[\centering 2010s: sigma=16674]{{\includegraphics[width=0.45\columnwidth]{../images/plot-227.png} }}%
+    \subfloat[\centering 2020s: sigma=14607]{{\includegraphics[width=0.45\columnwidth]{../images/plot-228.png} }}%
+    \caption{Contour Plots}%
+    \label{fig:example}%
+\end{figure}
+
+Just looking at the contour plots in Figure 3 already shows some noticable differences. The density for the 2000s is contained almost entirely in the center of Maryland, between Washington DC and Baltimore. The 2010s meanwhile have densities covering most of the map. The bulk of that density is in the same location of the 2000s, but it's branching out a lot more especially in the north. The 2020s are interesting there is a far more pronounced area of density in the northern part of the state bordering West Virginia. We also see some different bandwidth values for each of the decades, with the 2000s having by far the smallest and the 2010s having the largest. 
+
+\subsection*{Comparing Decades - Tolerance Contour Plots}
+
+\begin{figure}[ht!]%
+    \centering
+    \subfloat[\centering Reference decade: 2000s]{{\includegraphics[width=0.45\columnwidth]{../images/te-contour-00vs10.png} }}%
+    \qquad
+    \subfloat[\centering Reference decade: 2000s]{{\includegraphics[width=0.45\columnwidth]{../images/te-contour-00vs20.png} }}%
+    \subfloat[\centering Reference decade: 2010s]{{\includegraphics[width=0.45\columnwidth]{../images/te-contour-10vs20.png} }}%
+    \caption{Tolerance Envelope Contour Plots}%
+    \label{fig:example}%
+\end{figure}
+
+Moving onto actual comparisons, in Figure 4 I have three plots. Each one represents a tolerance envelope contour plot comparing two decades. For these, the bandwidth chosen is the mean of each decade's bandwidth. So the bandwidth of the 2000s vs the 2010s is $(10745+16674)/2 \approx 13709$. To aid in basic interpretation, areas of red represent spatial clustering of the reference decade relative to the other decade. Blue would represent spatial clustering of the other decade relative to the reference. 
+
+When interpreting these kinds of plots it is important to remember that areas can show up here that may not be present in the contour plots of Figure 3. This is because these plots show clustering of one group relative to the other. This is how we see clustering of the 2000s with respect to the 2020s in the bottom left plot of Figure 4 despite there being no density there in Figure 3. Referring back to Figure 2 here shows a small collection of points there for the 2000s and none in the 2020s, explaining the visual. 
+
+The general takeaway here is that all three decades show about the same degree of clustering in the middle of the state. It isn't exact but that region is mostly white in all three plots. The big differences here appear in the northern part of the state in particular, with both the 2010s and 2020s showing clustering with respect to the 2000s in that area. The 2020s is highly clustered in that northwest area bordering West Virginia relative to both other decades which is very interesting. This change in spatial densities through the decades could represent either a movement in bee populations to the northern portion of the state, or a shift in where human researchers chose to collect data. It's difficult to tell.
+
+\subsection*{Comparing Decades - Difference in K-Functions}
+
+\begin{figure}[ht!]%
+    \centering
+    \subfloat[\centering Reference decade: 2000s]{{\includegraphics[width=0.5\columnwidth]{../images/plot-235.png} }}%
+    \qquad
+    \subfloat[\centering Reference decade: 2000s]{{\includegraphics[width=0.5\columnwidth]{../images/plot-236.png} }}%
+    \subfloat[\centering Reference decade: 2010s]{{\includegraphics[width=0.5\columnwidth]{../images/plot-238.png} }}%
+    \caption{Difference in K-Functions}%
+    \label{fig:example}%
+\end{figure}
+
+These k-function plots in Figure 5 show some very interesting results. The first plot shows evidence of the 2000s being clustered relative to the 2010s at all chosen spatial scales. 
+
+% TODO: CREATE TABLE OF KDEST RESULTS.TXT THAT SHOW THE TEST RESULTS COMPARING THESE THINGS
